@@ -17,6 +17,9 @@
 (define-constant TOKENS-PER-SEAT u200000000000000) ;; 2M tokens per seat if supply 1B with 8 decimals
 (define-constant EXPIRATION-PERIOD u2100) ;; 1 Stacks reward cycle in PoX-4
 (define-constant PERIOD-2-LENGTH u100) ;; blocks for redistribution period
+(define-constant DEX-AMOUNT u250000)
+(define-constant MULTI-SIG-AMOUNT u10000)
+(define-constant FEE-AMOUNT u140000)
 
 (define-constant FT-INITIALIZED-BALANCE u4000000000000000) ;; 40M tokens for pre-launch if supply 1B
 (define-constant ACCELERATED-PERCENT u60) 
@@ -24,10 +27,34 @@
 ;; Vesting schedule (percentages add up to 100)
 (define-constant VESTING-SCHEDULE
     (list 
-        {height: u100, percent: u10, id: u0}  ;; 10% at start
-        {height: u1000, percent: u20, id: u1}  ;; 20% more
-        {height: u2100, percent: u30, id: u2}  ;; 30% more
-        {height: u4200, percent: u40, id: u3})) ;; Final 40%
+        ;; Initial release - 10% at once
+        {height: u100, percent: u10, id: u0}    ;; 10% at initial unlock
+        
+        ;; Second phase - 20% total across 6 drips
+        {height: u250, percent: u3, id: u1}     ;; 3%
+        {height: u400, percent: u3, id: u2}     ;; 3%
+        {height: u550, percent: u3, id: u3}     ;; 3%
+        {height: u700, percent: u3, id: u4}     ;; 3%
+        {height: u850, percent: u4, id: u5}     ;; 4%
+        {height: u1000, percent: u4, id: u6}    ;; 4% - hitting 30% total at original second milestone
+        
+        ;; Third phase - 30% total across 7 drips
+        {height: u1200, percent: u4, id: u7}    ;; 4%
+        {height: u1400, percent: u4, id: u8}    ;; 4%
+        {height: u1600, percent: u4, id: u9}    ;; 4%
+        {height: u1750, percent: u4, id: u10}   ;; 4%
+        {height: u1900, percent: u4, id: u11}   ;; 4%
+        {height: u2000, percent: u5, id: u12}   ;; 5%
+        {height: u2100, percent: u5, id: u13}   ;; 5% - hitting 60% total at original third milestone
+        
+        ;; Final phase - 40% total across 7 drips
+        {height: u2500, percent: u5, id: u14}   ;; 5%
+        {height: u2900, percent: u5, id: u15}   ;; 5%
+        {height: u3300, percent: u6, id: u16}   ;; 6%
+        {height: u3600, percent: u6, id: u17}   ;; 6%
+        {height: u3900, percent: u6, id: u18}   ;; 6%
+        {height: u4100, percent: u6, id: u19}   ;; 6%
+        {height: u4200, percent: u6, id: u20})) ;; 6% - hitting 100% total at original final milestone
 
 (define-constant MULTI-SIG-CREATOR tx-sender) ;; if a multi-sig can create a multi-sig then this is a multi-sig 2 of 5
 
@@ -38,8 +65,8 @@
 (define-data-var total-users uint u0)
 (define-data-var token-contract (optional principal) none)
 (define-data-var distribution-height (optional uint) none)
-(define-data-var deployment-height (optional uint) none)
-(define-data-var period-2-height (optional uint) none)
+(define-data-var deployment-height uint burn-block-height)
+(define-data-var period-2-height uint u0)
 (define-data-var accelerated-vesting bool false)
 
 ;; Determined after multi-sig creation
@@ -84,14 +111,10 @@
 
 ;; Helper functions for period management
 (define-private (is-period-1-expired)
-    (match (var-get deployment-height)
-        start-height (>= burn-block-height (+ start-height EXPIRATION-PERIOD))
-        false))
+    (> burn-block-height (+ (var-get deployment-height) EXPIRATION-PERIOD)))
 
 (define-private (is-in-period-2)
-    (match (var-get period-2-height)
-        start-height (< burn-block-height (+ start-height PERIOD-2-LENGTH))
-        false))
+     (<= burn-block-height (+ (var-get period-2-height) PERIOD-2-LENGTH)))
 
 ;; Helper function to update seat holders list
 (define-private (update-seat-holder (owner principal) (seat-count uint))
@@ -163,10 +186,9 @@
         
         (asserts! (> actual-seats u0) ERR-INVALID-SEAT-COUNT)
         (asserts! (< current-seats SEATS) ERR-NO-SEATS-LEFT)
-        (asserts! (is-none (var-get period-2-height)) ERR-PERIOD-2-ALREADY-STARTED)
+        (asserts! (is-eq (var-get period-2-height) u0) ERR-PERIOD-2-ALREADY-STARTED)
         
         ;; Process payment
-        ;; 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.sbtc-token
         (match (contract-call? .sbtc-token 
                     transfer (* PRICE-PER-SEAT actual-seats) tx-sender (as-contract tx-sender) none)
             success 
@@ -181,7 +203,7 @@
                     
                     (if (and (>= (var-get total-users) MIN-USERS)  ;; Check if we should start Period 2
                             (>= (var-get total-seats-taken) SEATS))
-                        (var-set period-2-height (some burn-block-height))
+                        (var-set period-2-height burn-block-height)
                         true)
                     (print {
                         type: "buy-seats",
@@ -219,13 +241,12 @@
         (holder (unwrap! highest-holder ERR-HIGHEST-HOLDER))
         (old-seats (default-to u0 (map-get? seats-owned holder))))
         
-        (asserts! (is-some (var-get period-2-height)) ERR-PERIOD-2-NOT-INITIALIZED)
+        (asserts! (> (var-get period-2-height) u0) ERR-PERIOD-2-NOT-INITIALIZED)
         (asserts! (is-in-period-2) ERR-ALREADY-EXPIRED)
         (asserts! (< (var-get total-users) SEATS) ERR-NO-SEATS-LEFT)
         (asserts! (> old-seats u1) ERR-HIGHEST-ONE-SEAT)
         
         ;; Process payment and refund highest holder
-        ;; 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2
         (match (contract-call? .sbtc-token 
                     transfer PRICE-PER-SEAT tx-sender holder none)
             success 
@@ -254,7 +275,7 @@
         (user-seats (default-to u0 (map-get? seats-owned tx-sender)))
         (seat-owner tx-sender))
         (asserts! (is-period-1-expired) ERR-NOT-EXPIRED) ;; period 1 is expired
-        (asserts! (is-none (var-get period-2-height)) ERR-PERIOD-2-ALREADY-STARTED)
+        (asserts! (is-eq (var-get period-2-height) u0) ERR-PERIOD-2-ALREADY-STARTED)
         (asserts! (> user-seats u0) ERR-NOT-SEAT-OWNER)
         
         ;; Process refund
@@ -336,7 +357,7 @@
     (ok 
     {
         is-period-1-expired: (is-period-1-expired),
-        period-2-started: (is-some (var-get period-2-height)),
+        period-2-started: (> (var-get period-2-height) u0),
         is-in-period-2: (is-in-period-2),
         total-users: (var-get total-users),
         total-seats-taken: (var-get total-seats-taken),
@@ -355,8 +376,8 @@
     (ok
     {
         highest-holder: (get-highest-seat-holder),
-        period-2-blocks-remaining: (match (var-get period-2-height)
-            start (- (+ start PERIOD-2-LENGTH) burn-block-height)
+        period-2-blocks-remaining: (if (<= burn-block-height (+ (var-get period-2-height) PERIOD-2-LENGTH))
+            (- burn-block-height (+ (var-get period-2-height) PERIOD-2-LENGTH))
             u0)
     }))
 
@@ -380,7 +401,7 @@
 ;; A multi-sig creator contract addresses after creating a multi-sig whose owners are 10 buyers resulting from period 1
 (define-public (set-contract-addresses (new-multi-sig principal) (new-dao-token principal) (new-dex-contract principal))
     (begin
-        (asserts! (is-some (var-get period-2-height)) ERR-PERIOD-2-NOT-INITIALIZED)
+        (asserts! (> (var-get period-2-height) u0) ERR-PERIOD-2-NOT-INITIALIZED)
         (asserts! (is-eq tx-sender MULTI-SIG-CREATOR) ERR-NOT-AUTHORIZED)
 
         (var-set dao-multi-sig (some new-multi-sig))
@@ -399,18 +420,18 @@
 ;; on DAO token deployment
 (define-public (initialize-token-distribution)
     (begin
-        (asserts! (is-some (var-get period-2-height)) ERR-PERIOD-2-NOT-INITIALIZED)
+        (asserts! (> (var-get period-2-height) u0) ERR-PERIOD-2-NOT-INITIALIZED)
         (asserts! (is-eq (some tx-sender) (var-get dao-token)) ERR-NOT-AUTHORIZED)
         (asserts! (is-none (var-get token-contract)) ERR-ALREADY-INITIALIZED)
         (asserts! (is-some (var-get dao-multi-sig)) ERR-NOT-SET)
         (asserts! (is-some (var-get dao-token)) ERR-NOT-SET)
         (asserts! (is-some (var-get dex-contract)) ERR-NOT-SET)
         (try! (as-contract (contract-call? .sbtc-token 
-                             transfer u250000 tx-sender (unwrap-panic (var-get dex-contract)) none))) ;; 0.00250000 BTC to DEX  
+                             transfer DEX-AMOUNT tx-sender (unwrap-panic (var-get dex-contract)) none))) ;; 0.00250000 BTC to DEX  
         (try! (as-contract (contract-call? .sbtc-token 
-                             transfer u10000 tx-sender (unwrap-panic  (var-get dao-multi-sig)) none))) ;; 0.00010000 BTC to multi-sig/admin -> covers contract deployment fees
+                             transfer MULTI-SIG-AMOUNT tx-sender (unwrap-panic  (var-get dao-multi-sig)) none))) ;; 0.00010000 BTC to multi-sig/admin -> covers contract deployment fees
         (try! (as-contract (contract-call? .sbtc-token 
-                             transfer u140000 tx-sender MULTI-SIG-CREATOR none)))  ;; 0.00140000 BTC fees -> covers ordinals bot, pontis and faktory
+                             transfer FEE-AMOUNT tx-sender MULTI-SIG-CREATOR none)))  ;; 0.00140000 BTC fees -> covers ordinals bot, pontis and faktory
         (var-set token-contract (some tx-sender))
         (var-set distribution-height (some burn-block-height))
         (var-set last-airdrop-height (some burn-block-height))
@@ -425,17 +446,17 @@
 
 (define-public (initialize-token-distribution-demo)
     (begin
-        ;; (asserts! (is-some (var-get period-2-height)) ERR-PERIOD-2-NOT-INITIALIZED)
+        ;; (asserts! (> (var-get period-2-height) u0) ERR-PERIOD-2-NOT-INITIALIZED)
         ;; (asserts! (is-eq (some tx-sender) (var-get dao-token)) ERR-NOT-AUTHORIZED)
         ;; (asserts! (is-none (var-get token-contract)) ERR-ALREADY-INITIALIZED)
         ;; (asserts! (is-some (var-get dao-multi-sig)) ERR-NOT-SET)
         ;; (asserts! (is-some (var-get dao-token)) ERR-NOT-SET)
         ;; (asserts! (is-some (var-get dex-contract)) ERR-NOT-SET)
-        ;; (try! (as-contract (contract-call? .sbtc-token 
+        ;; (try! (as-contract (contract-call? 'ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT.sbtc-token 
         ;;                      transfer u250000 tx-sender (unwrap-panic (var-get dex-contract)) none))) ;; 0.00250000 BTC to DEX  
-        ;; (try! (as-contract (contract-call? .sbtc-token 
+        ;; (try! (as-contract (contract-call? 'ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT.sbtc-token 
         ;;                      transfer u10000 tx-sender (unwrap-panic  (var-get dao-multi-sig)) none))) ;; 0.00010000 BTC to multi-sig/admin -> covers contract deployment fees
-        ;; (try! (as-contract (contract-call? .sbtc-token 
+        ;; (try! (as-contract (contract-call? 'ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT.sbtc-token 
         ;;                      transfer u140000 tx-sender MULTI-SIG-CREATOR none)))  ;; 0.00140000 BTC fees -> covers ordinals bot, pontis and faktory
         (var-set token-contract (some tx-sender))
         (var-set distribution-height (some burn-block-height))
@@ -585,6 +606,3 @@
                               (/ (* total-fees user-seats) total-seats)
                               u0)
         })))
-
-;; boot contract
-(var-set deployment-height (some burn-block-height))

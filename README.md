@@ -1,4 +1,55 @@
-You're absolutely right with that clarification. Here's the updated summary:
+# Pre-Faktory Contract Explanation
+
+## Overview
+
+The Pre-Faktory contract is a pre-launch mechanism for the Faktory.fun DEX on Bitcoin L2. It allows early supporters to participate in the DAO by purchasing "seats" that grant them both token allocation and fee distribution rights.
+
+## Key Mechanics
+
+1. **Seat System**:
+
+   - Total of 20 seats available
+   - Each seat costs 0.0002 BTC (20,000 sats)
+   - Each seat entitles holder to 2M tokens (assuming 1B total supply)
+   - Minimum of 10 unique participants required
+
+2. **Two-Phase Distribution**:
+
+   - **Period 1**: Initial seat purchase phase
+     - Users can buy up to 7 seats each
+     - Dynamic allocation based on remaining seats and users needed
+     - Lasts for a fixed period (2100 blocks, about 2 weeks)
+   - **Period 2**: Redistribution phase
+     - Triggered when 20 seats are sold AND at least 10 unique users have participated
+     - New users can buy a single seat from the largest seat holder
+     - Promotes fairer distribution and more community participation
+     - Lasts for 100 blocks
+
+3. **Vested Token Distribution**:
+
+   - Tokens are vested according to a schedule:
+     - 10% at start
+     - 20% after 1000 blocks
+     - 30% after 2100 blocks
+     - 40% after 4200 blocks
+   - Accelerated vesting can be triggered on successful DEX launch/bonding
+
+4. **DAO & Fee Structure**:
+
+   - Seat holders become owners of the DAO's multi-sig
+   - The multi-sig is the deployer of the DAO contracts
+   - Seat holders receive protocol fees from the DEX proportional to seats owned
+   - Automatic fee airdrops delivered in sBTC after cooldown periods
+
+5. **Deployment Flow**:
+   - Period 1: Seat purchases
+   - Period 2: Optional redistribution
+   - Multi-sig creation with all participants
+   - Token deployment and initial distribution
+   - DEX contract deployment with collected funds
+   - Ongoing fee airdrops to seat holders
+
+This pre-launch structure creates a decentralized foundation for the DEX by distributing both governance power and economic benefits to early supporters while ensuring a minimum level of decentralization from day one.
 
 ## Transitions and Function Availability
 
