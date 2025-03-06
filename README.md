@@ -1,8 +1,8 @@
-# Pre-Faktory Contract Explanation
+# Pre-Faktory Contract Explanation (Updated)
 
 ## Overview
 
-The Pre-Faktory contract is a pre-launch mechanism for the Faktory.fun DEX on Bitcoin L2. It allows early supporters to participate in the DAO by purchasing "seats" that grant them both token allocation and fee distribution rights.
+The Pre-Launch Faktory contract is a pre-launch mechanism for ai BTC DAOs on Bitcoin L2. It allows early supporters to participate in the DAO by purchasing "seats" that grant them both token allocation and fee distribution rights.
 
 ## Key Mechanics
 
@@ -13,113 +13,96 @@ The Pre-Faktory contract is a pre-launch mechanism for the Faktory.fun DEX on Bi
    - Each seat entitles holder to 2M tokens (assuming 1B total supply)
    - Minimum of 10 unique participants required
 
-2. **Two-Phase Distribution**:
+2. **Simplified Distribution Process**:
 
-   - **Period 1**: Initial seat purchase phase
-     - Users can buy up to 7 seats each
-     - Dynamic allocation based on remaining seats and users needed
-     - Lasts for a fixed period (2100 blocks, about 2 weeks)
-   - **Period 2**: Redistribution phase
-     - Triggered when 20 seats are sold AND at least 10 unique users have participated
-     - New users can buy a single seat from the largest seat holder
-     - Promotes fairer distribution and more community participation
-     - Lasts for 100 blocks
+   - Single purchase phase where users can buy up to 7 seats each
+   - Dynamic allocation based on remaining seats and users needed
+   - Lasts for a fixed period (2100 blocks, about 2 weeks)
+   - Distribution automatically initializes when 20 seats are sold AND at least 10 unique users have participated
 
 3. **Vested Token Distribution**:
 
-   - Tokens are vested according to a schedule:
-     - 10% at start
-     - 20% after 1000 blocks
-     - 30% after 2100 blocks
-     - 40% after 4200 blocks
+   - Tokens are vested according to a detailed schedule with multiple releases:
+     - Initial release: 10% at start
+     - Second phase: 20% across 6 smaller distributions
+     - Third phase: 30% across 7 smaller distributions
+     - Final phase: 40% across 7 smaller distributions
    - Accelerated vesting can be triggered on successful DEX launch/bonding
+     - When activated, immediately unlocks the first 60% of tokens
 
 4. **DAO & Fee Structure**:
 
-   - Seat holders become owners of the DAO's multi-sig
-   - The multi-sig is the deployer of the DAO contracts
+   - The DEX opens market and Treasury allows for voting only after pre-launch criteria are met (10+ buyers, 20 seats)
    - Seat holders receive protocol fees from the DEX proportional to seats owned
    - Automatic fee airdrops delivered in sBTC after cooldown periods
 
 5. **Deployment Flow**:
-   - Period 1: Seat purchases
-   - Period 2: Optional redistribution
-   - Multi-sig creation with all participants
-   - Token deployment and initial distribution
-   - DEX contract deployment with collected funds
+   - Seat purchases until requirements met (20 seats, 10+ users)
+   - Automatic token distribution initialization
+   - DEX market opens automatically
+   - Treasury voting becomes available
    - Ongoing fee airdrops to seat holders
-
-This pre-launch structure creates a decentralized foundation for the DEX by distributing both governance power and economic benefits to early supporters while ensuring a minimum level of decentralization from day one.
 
 ## Transitions and Function Availability
 
-**Period 1:**
+**Purchase Phase:**
 
-- `buy-up-to`: Available until Period 2 starts
-- `refund`: Only available if Period 1 expires without reaching criteria and Period 2 hasn't started
+- `buy-up-to`: Available until requirements are met (20 seats, 10+ users)
+- `refund`: Only available if the contract expires without reaching criteria (20 seats, 10+ users)
 
-**Period 2:**
+**Distribution Phase:**
 
 - Begins automatically when 20 seats are sold to 10+ users
-- `buy-single-seat`: Only available during Period 2 (100 blocks)
-- `set-contract-addresses`: Only available after Period 2 starts
+- `claim`: Only available after reaching criteria (20 seats, 10+ users)
+- `claim-on-behalf`: Allows claiming tokens for another holder
 
-**Token Distribution:**
+**Fee Distribution:**
 
-- `initialize-token-distribution`: Can only be called by the DAO token after Period 2 starts and set-contract-addresses is set properly
-- `claim`: Only available after token distribution is initialized
+- `trigger-fee-airdrop`: Distributes accumulated fees to all seat holders
+- Automatic cooldown period between airdrops (2100 blocks)
+- Special "final airdrop mode" activated upon DEX bonding
 
 ## Key Variables
 
-- `period-2-height`: Marks successful completion of Period 1
-- `token-contract`: Marks DAO token deployment and initialization (not redundant)
+- `distribution-height`: Marks successful completion of the purchase phase and initialization of token distribution
+- `last-airdrop-height`: Tracks the last time fees were distributed
+- `accelerated-vesting`: Enables faster token unlocking (up to 60%) upon bonding
+- `final-airdrop-mode`: Allows immediate fee distribution regardless of cooldown
 
 ## Workflow
 
-1. Users buy seats in Period 1
-2. Period 2 starts automatically when requirements met
-3. Multi-sig agent sets contract addresses during Period 2
-4. DAO token deploys and initializes distribution (which can only happen once)
-5. Users can begin claiming tokens according to vesting schedule
-
-Each check serves a distinct purpose in ensuring correct sequencing and authorization throughout the process. The token-contract variable is indeed not redundant - it specifically marks when the DAO token has deployed and initialized distribution, which is separate from the Period 2 transition.
-
-## Multi-sig Security Model
-
-At no point does the multi-sig agent control the flow of money or token distribution. The agent only facilitates the creation of the multi-sig and setting of contracts. If an error occurs in setting addresses, the agent can create a new multi-sig with the correct configuration and update the addresses accordingly without risking funds.
-
-The design ensures transparency as anyone can verify that the multi-sig members match the first buyers from Period 1. This establishes decentralized control from day one while maintaining the technical capability to deploy the necessary infrastructure.
-
-Recovery Path: If the token is deployed with an address that doesn't match what's set in the pre-launch contract, initialize-distribution will fail. The agent can then create a new multi-sig, update the contract addresses, and redeploy the token correctly. This ensures STX funds in the pre-launch contract are never stuck, even if deployment errors occur.
-
-If the multi-sig creator makes a mistake in setting addresses:
-
-1. They can deploy a new multi-sig with the correct configuration
-2. Call `set-contract-addresses` again with the correct addresses
-3. Deploy the token contract through the new multi-sig
-4. The token contract calls `initialize-token-distribution`
-
-Since the condition is `(asserts! (is-eq tx-sender (var-get dao-token)) ERR-NOT-AUTHORIZED)`, as long as the caller matches whatever is currently set as `dao-token`, the initialization will succeed.
-
-This approach gives flexibility to fix mistakes without complex recovery mechanisms, while still maintaining the security of requiring the multi-sig for deployment. The only consequence is that the first incorrect multi-sig would need to be abandoned, but that's a reasonable tradeoff for the simplicity it provides.
-
-;; Pre-launch participants are considered co-deployers of the DAO contract infrastructure through
-;; the multi-sig and thus have legitimate claim to protocol fees based on:
-;;
-;; 1. They provide valuable service in protocol deployment and bootstrapping
-;; 2. Fee distribution is transparent, immutable and programmatically defined
-;; 3. Multi-sig creation formalizes their relationship with the DAO
-;;
-;; Fee compensation is separate from token purchase:
-;; - Participants buy tokens through seat purchase
-;; - Participants receive fees as compensation for their deployer role
-;; - These are distinct forms of value with different legal bases
-;;
-;; Implementation follows standard DeFi practices:
-;;
-;; This creates proper incentive alignment and encourages long-term protocol engagement
-;; beyond the initial vesting period.
+1. Users buy seats during the purchase phase
+2. When requirements are met (20 seats, 10+ users), distribution initializes automatically
+3. DEX market opens and initial funds are distributed
+4. Users can begin claiming tokens according to vesting schedule
+5. Periodic fee airdrops are sent to all seat holders
 
 ## Fee Airdrops
 
-We simplified the fee distribution system by replacing a complex period-based claiming mechanism with a streamlined automatic airdrop approach. Instead of tracking fees per period and requiring each user to manually claim their share, the new system accumulates all fees in a single pool and distributes them proportionally to all seat holders in one transaction. We optimized the code by directly using the existing seat-holders list, implemented a cooldown period between airdrops, and added a special "final airdrop" mode on bonding. The new system is more gas-efficient and provides a much better user experience since users automatically receive their fees without any action required.
+The fee distribution system uses a streamlined automatic airdrop approach:
+
+- Fees accumulate in a single pool until an airdrop is triggered
+- Distribution is proportional to seats owned
+- A cooldown period (2100 blocks) between airdrops prevents frequent small distributions
+- Anyone can trigger the airdrop once conditions are met
+- Upon bonding, a "final airdrop mode" is activated that bypasses the cooldown
+- Users automatically receive their fees without any action required
+
+## Security Model
+
+Faktory serves as the deployer agent of the DAO contracts, but critical functionality (DEX market opening and Treasury voting) is conditional on meeting the pre-launch criteria by the community. This ensures that the pre-launch process must be successfully completed with adequate decentralization (10+ unique buyers and 20 seats sold) before the ecosystem becomes fully operational.
+
+The design creates a trustless system where Faktory cannot unilaterally enable key functionalities without first achieving the required level of community participation. This establishes a balance between efficient deployment and decentralized governance from day one.
+
+## Expiration and Refund Mechanism
+
+After 2100 Bitcoin blocks (approximately 2 weeks), if the criteria for launch are not met (10+ unique buyers and 20 seats total), seat buyers can request refunds by calling the `refund` function.
+
+Important notes about this mechanism:
+
+- The ability to get refunds doesn't prevent the criteria from being met later
+- New buyers can still purchase seats even after the expiration period
+- If the criteria are eventually met (even after expiration), the distribution will initialize automatically
+- Refunds are only available if the distribution hasn't been initialized yet
+
+This approach provides protection for early supporters while maintaining flexibility for the pre-launch process to succeed even after the initial timeframe.
