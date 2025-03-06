@@ -13,7 +13,7 @@
 (define-constant SEATS u20)
 (define-constant MIN-USERS u10)
 (define-constant MAX-SEATS-PER-USER u7)
- (define-constant PRICE-PER-SEAT u20000) ;; 20K sats per seat
+(define-constant PRICE-PER-SEAT u20000) ;; 20K sats per seat
 (define-constant TOKENS-PER-SEAT u200000000000000) ;; 2M tokens per seat if supply 1B with 8 decimals
 (define-constant EXPIRATION-PERIOD u2100) ;; 1 Stacks reward cycle in PoX-4
 (define-constant PERIOD-2-LENGTH u100) ;; blocks for redistribution period
@@ -341,6 +341,30 @@
                         total-claimed: (map-get? claimed-amounts tx-sender),
                         ft-balance: (var-get ft-balance)
                         })
+                    (ok claimable))
+            error (err error))))
+
+;; Claim vested tokens on behalf of a specific holder
+(define-public (claim-on-behalf (ft <faktory-token>) (holder principal))
+    (let ((claimable (get-claimable-amount holder)))
+        (asserts! (is-eq (var-get token-contract) (var-get dao-token)) ERR-DISTRIBUTION-NOT-INITIALIZED) 
+        (asserts! (is-eq (contract-of ft) (unwrap-panic (var-get dao-token))) ERR-WRONG-TOKEN)
+        (asserts! (> (default-to u0 (map-get? seats-owned holder)) u0) ERR-NOT-SEAT-OWNER)
+        (asserts! (> claimable u0) ERR-NOTHING-TO-CLAIM)
+        (asserts! (>= (var-get ft-balance) claimable) ERR-CONTRACT-INSUFFICIENT-FUNDS) 
+        (match (as-contract (contract-call? ft transfer claimable tx-sender holder none))
+            success
+                (begin
+                    (map-set claimed-amounts holder 
+                        (+ (default-to u0 (map-get? claimed-amounts holder)) claimable))
+                    (var-set ft-balance (- (var-get ft-balance) claimable))
+                    (print {
+                        type: "claim",
+                        user: holder,
+                        amount-claimed: claimable,
+                        total-claimed: (map-get? claimed-amounts holder),
+                        ft-balance: (var-get ft-balance)
+                    })
                     (ok claimable))
             error (err error))))
 
