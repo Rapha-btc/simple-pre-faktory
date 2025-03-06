@@ -125,9 +125,8 @@
 ;; Helper to update or add a holder to the list
 (define-private (update-or-add-holder 
     (holders (list 20 {owner: principal, seats: uint}))
-    (owner principal)
-    (seat-count uint))
-  (let ((position (find-holder-position holders owner)))
+    (owner principal) (seat-count uint))
+  (let ((position (find-holder-position holders)))
     (if (is-some position)
         ;; Update existing holder - unwrap the optional result
         (unwrap-panic (replace-at? holders (unwrap-panic position) {owner: owner, seats: seat-count}))
@@ -136,31 +135,29 @@
 
 ;; Helper to find a holder's position in the list
 (define-private (find-holder-position 
-    (holders (list 20 {owner: principal, seats: uint}))
-    (owner principal))
+    (holders (list 20 {owner: principal, seats: uint})))
   (let ((result (fold check-if-owner 
                      holders 
-                     {found: false, index: u0, current: u0})))
-    (var-set target-owner owner)
+                     {found: false, index: u0})))
     (if (get found result)
         (some (get index result))
         none)))
 
 (define-private (check-if-owner 
     (entry {owner: principal, seats: uint}) 
-    (state {found: bool, index: uint, current: uint}))
+    (state {found: bool, index: uint}))
   (if (get found state)
       ;; Already found, just pass through
       state
       ;; Check if this is the owner we're looking for
       (if (is-eq (get owner entry) (var-get target-owner))
           ;; Found it, update state
-          {found: true, index: (get current state), current: (+ (get current state) u1)}
+          {found: true, index: (get index state)}
           ;; Not found, increment counter
-          {found: false, index: (get index state), current: (+ (get current state) u1)})))
+          {found: false, index: (+ (get index state) u1)})))
 
-(define-private (remove-seat-holder (holder principal))
-  (let ((position (find-holder-position (var-get seat-holders) holder))
+(define-private (remove-seat-holder)
+  (let ((position (find-holder-position (var-get seat-holders)))
         (current-list (var-get seat-holders)))
     (match position 
         pos (let ((before-slice (unwrap! (slice? current-list u0 pos) ERR-SLICE-FAILED))
@@ -199,6 +196,7 @@
                     (map-set seats-owned tx-sender (+ user-seats actual-seats))
                     (var-set total-seats-taken (+ current-seats actual-seats))
                     (var-set stx-balance (+ (var-get stx-balance) (* PRICE-PER-SEAT actual-seats)))
+                    (var-set target-owner tx-sender)
                     (update-seat-holder tx-sender (+ user-seats actual-seats))
                     
                     (if (and (>= (var-get total-users) MIN-USERS)  ;; Check if we should start Period 2
@@ -255,7 +253,9 @@
                     (var-set total-users (+ (var-get total-users) u1))
                     (map-set seats-owned holder (- old-seats u1))
                     (map-set seats-owned tx-sender u1)
+                    (var-set target-owner holder)
                     (update-seat-holder holder (- old-seats u1))  ;; Update list for holder
+                    (var-set target-owner tx-sender)
                     (update-seat-holder tx-sender u1)             ;; Update list for buyer
                     (print {
                         type: "buy-single-seat",
@@ -278,12 +278,13 @@
         (asserts! (is-eq (var-get period-2-height) u0) ERR-PERIOD-2-ALREADY-STARTED)
         (asserts! (> user-seats u0) ERR-NOT-SEAT-OWNER)
         
+        (var-set target-owner tx-sender)
         ;; Process refund
         ;; 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2
         (match (as-contract (contract-call? .sbtc-token 
                             transfer (* PRICE-PER-SEAT user-seats) tx-sender seat-owner none))
             success 
-                (let ((is-removed (unwrap! (remove-seat-holder tx-sender) ERR-REMOVING-HOLDER)))
+                (let ((is-removed (unwrap! (remove-seat-holder) ERR-REMOVING-HOLDER)))
                     (map-delete seats-owned tx-sender)
                     (var-set total-seats-taken (- (var-get total-seats-taken) user-seats))
                     (var-set total-users (- (var-get total-users) u1))
