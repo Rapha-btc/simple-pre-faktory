@@ -16,7 +16,6 @@
 (define-constant PRICE-PER-SEAT u20000) ;; 20K sats per seat
 (define-constant TOKENS-PER-SEAT u200000000000000) ;; 2M tokens per seat if supply 1B with 8 decimals
 (define-constant EXPIRATION-PERIOD u2100) ;; 1 Stacks reward cycle in PoX-4
-(define-constant PERIOD-2-LENGTH u100) ;; blocks for redistribution period
 (define-constant DEX-AMOUNT u250000)
 (define-constant MULTI-SIG-AMOUNT u10000)
 (define-constant FEE-AMOUNT u140000)
@@ -56,25 +55,24 @@
         {height: u4100, percent: u6, id: u19}   ;; 6%
         {height: u4200, percent: u6, id: u20})) ;; 6% - hitting 100% total at original final milestone
 
-(define-constant MULTI-SIG-CREATOR tx-sender) ;; if a multi-sig can create a multi-sig then this is a multi-sig 2 of 5
+(define-constant FAKTORY1 tx-sender) ;; if a multi-sig can create a multi-sig then this is a multi-sig 2 of 5
 
 ;; Data vars
 (define-data-var ft-balance uint u0)
 (define-data-var stx-balance uint u0)
 (define-data-var total-seats-taken uint u0)
 (define-data-var total-users uint u0)
-(define-data-var token-contract (optional principal) none)
-(define-data-var distribution-height (optional uint) none)
+(define-data-var distribution-height uint u0)
 (define-data-var deployment-height uint burn-block-height)
-(define-data-var period-2-height uint u0)
 (define-data-var accelerated-vesting bool false)
+(define-data-var intialized bool false)
 
 ;; Determined after multi-sig creation
-(define-data-var dao-token (optional principal) none) ;; 'STRZ4P1ABSVSZPC4HZ4GDAW834HHEHJMF65X5S6D.txt6-faktory)
-(define-data-var dex-contract (optional principal) none) ;; 'STRZ4P1ABSVSZPC4HZ4GDAW834HHEHJMF65X5S6D.txt6-faktory-dex)
-(define-data-var dao-multi-sig (optional principal) none) ;; 'ST3SPSJDYGHF0ARGV1TNS0HX6JEP7T1J6849A7BB4)
+(define-constant TOKEN-DAO .name-faktory) ;; param
+(define-constant DEX-DAO .name-faktory-dex) ;; param
+
 ;; Helper vars
-(define-data-var target-owner principal 'STTWD9SPRQVD3P733V89SV0P8RZRZNQADG034F0A) ;; cant-be-evil.stx  in testnet? random 'SP000000000000000000002Q6VF78
+(define-data-var target-owner principal 'STTWD9SPRQVD3P733V89SV0P8RZRZNQADG034F0A) ;; 'SP000000000000000000002Q6VF78
 
 ;; Define a data variable to track seat holders
 (define-data-var seat-holders (list 20 {owner: principal, seats: uint}) (list))
@@ -84,7 +82,6 @@
 (define-map claimed-amounts principal uint)
 
 ;; Error constants
-(define-constant ERR-TOO-MANY-SEATS (err u300))
 (define-constant ERR-NO-SEATS-LEFT (err u301))
 (define-constant ERR-NOT-SEAT-OWNER (err u302))
 (define-constant ERR-NOT-SET (err u303))
@@ -103,18 +100,14 @@
 (define-constant ERR-REMOVING-HOLDER (err u316))
 (define-constant ERR-HIGHEST-ONE-SEAT (err u317))
 (define-constant ERR-NOT-BONDED (err u318))
-(define-constant ERR-PERIOD-2-NOT-INITIALIZED (err u319))
-(define-constant ERR-PERIOD-2-ALREADY-STARTED (err u320))
+(define-constant ERR-DISTRIBUTION-NOT-SET (err u319))
+(define-constant ERR-DISTRIBUTION-ALREADY-SET (err u320))
 (define-constant ERR-DISTRIBUTION-NOT-INITIALIZED (err u321))
 (define-constant ERR-HIGHEST-HOLDER (err u322))
-
 
 ;; Helper functions for period management
 (define-private (is-period-1-expired)
     (> burn-block-height (+ (var-get deployment-height) EXPIRATION-PERIOD)))
-
-(define-private (is-in-period-2)
-     (<= burn-block-height (+ (var-get period-2-height) PERIOD-2-LENGTH)))
 
 ;; Helper function to update seat holders list
 (define-private (update-seat-holder (owner principal) (seat-count uint))
@@ -181,9 +174,9 @@
                         max-additional-allowed
                         seat-count)))
         
+        (asserts! (is-eq (var-get distribution-height) u0) ERR-DISTRIBUTION-ALREADY-SET)
         (asserts! (> actual-seats u0) ERR-INVALID-SEAT-COUNT)
         (asserts! (< current-seats SEATS) ERR-NO-SEATS-LEFT)
-        (asserts! (is-eq (var-get period-2-height) u0) ERR-PERIOD-2-ALREADY-STARTED)
         
         ;; Process payment
         (match (contract-call? .sbtc-token 
@@ -199,9 +192,9 @@
                     (var-set target-owner tx-sender)
                     (update-seat-holder tx-sender (+ user-seats actual-seats))
                     
-                    (if (and (>= (var-get total-users) MIN-USERS)  ;; Check if we should start Period 2
+                    (if (and (>= (var-get total-users) MIN-USERS)  ;; Check if we should set distribution height
                             (>= (var-get total-seats-taken) SEATS))
-                        (var-set period-2-height burn-block-height)
+                        (try! (initialize-token-distribution))
                         true)
                     (print {
                         type: "buy-seats",
@@ -211,61 +204,8 @@
                         total-seats-taken: (+ current-seats actual-seats),
                         stx-balance: (var-get stx-balance),
                         seat-holders: (var-get seat-holders),
-                        period-2-height: (var-get period-2-height) ;; perhaps these var-get can be optimized?
+                        distribution-height: (var-get distribution-height) 
                         })
-                    (ok true))
-            error (err error))))
-
-;; Get highest seat holder for Period 2 reductions
-(define-private (get-highest-seat-holder)
-    (let ((holders (var-get seat-holders)))
-      (if (> (len holders) u0)
-          (let ((first-holder (unwrap-panic (element-at holders u0))))
-            (some (get owner (fold check-highest holders first-holder))))
-          none)))
-
-(define-private (check-highest 
-    (entry {owner: principal, seats: uint}) 
-    (current-max {owner: principal, seats: uint}))
-  (if (>= (get seats entry) (get seats current-max))
-      entry
-      current-max))
-
-;; Buy exactly one seat in Period 2
-(define-public (buy-single-seat)
-    (let (
-        (current-seats (var-get total-seats-taken))
-        (highest-holder (get-highest-seat-holder))
-        (holder (unwrap! highest-holder ERR-HIGHEST-HOLDER))
-        (old-seats (default-to u0 (map-get? seats-owned holder))))
-        
-        (asserts! (> (var-get period-2-height) u0) ERR-PERIOD-2-NOT-INITIALIZED)
-        (asserts! (is-in-period-2) ERR-ALREADY-EXPIRED)
-        (asserts! (< (var-get total-users) SEATS) ERR-NO-SEATS-LEFT)
-        (asserts! (> old-seats u1) ERR-HIGHEST-ONE-SEAT)
-        
-        ;; Process payment and refund highest holder
-        (match (contract-call? .sbtc-token 
-                    transfer PRICE-PER-SEAT tx-sender holder none)
-            success 
-                (begin
-                    ;; Update new buyer
-                    (var-set total-users (+ (var-get total-users) u1))
-                    (map-set seats-owned holder (- old-seats u1))
-                    (map-set seats-owned tx-sender u1)
-                    (var-set target-owner holder)
-                    (update-seat-holder holder (- old-seats u1))  ;; Update list for holder
-                    (var-set target-owner tx-sender)
-                    (update-seat-holder tx-sender u1)             ;; Update list for buyer
-                    (print {
-                        type: "buy-single-seat",
-                        total-users: (var-get total-users),
-                        holder: holder,
-                        holder-seats: (- old-seats u1),
-                        buyer: tx-sender,
-                        buyer-seats: u1,
-                        seat-holders: (var-get seat-holders),
-                         })
                     (ok true))
             error (err error))))
 
@@ -274,13 +214,12 @@
     (let (
         (user-seats (default-to u0 (map-get? seats-owned tx-sender)))
         (seat-owner tx-sender))
-        (asserts! (is-period-1-expired) ERR-NOT-EXPIRED) ;; period 1 is expired
-        (asserts! (is-eq (var-get period-2-height) u0) ERR-PERIOD-2-ALREADY-STARTED)
+        (asserts! (is-period-1-expired) ERR-NOT-EXPIRED) 
+        (asserts! (is-eq (var-get distribution-height) u0) ERR-DISTRIBUTION-ALREADY-SET)
         (asserts! (> user-seats u0) ERR-NOT-SEAT-OWNER)
         
         (var-set target-owner tx-sender)
         ;; Process refund
-        ;; 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2
         (match (as-contract (contract-call? .sbtc-token 
                             transfer (* PRICE-PER-SEAT user-seats) tx-sender seat-owner none))
             success 
@@ -300,31 +239,31 @@
                     (ok true))
             error (err error))))
 
-;; Calculate claimable amount based on vesting schedule
 (define-private (get-claimable-amount (owner principal))
-    (match (var-get distribution-height) 
-        start-height 
+    (begin
+        (if (> (var-get distribution-height) u0)
             (let ((claimed (default-to u0 (map-get? claimed-amounts owner)))
                   (seats-owner (default-to u0 (map-get? seats-owned owner)))
                   (vested (fold check-claimable VESTING-SCHEDULE u0)))
                 (- (* vested seats-owner) claimed)) ;; double claiming is impossible    
-        u0)) ;; If distribution not initialized, nothing is claimable
+            u0))) ;; If distribution not initialized (equals u0), nothing is claimable
 
 (define-private (check-claimable (entry {height: uint, percent: uint, id: uint}) (current-total uint))
-    (if (<= (+ (unwrap-panic (var-get distribution-height)) (get height entry)) burn-block-height)
-        (+ current-total (/ (* TOKENS-PER-SEAT (get percent entry)) u100))
-        (if (and 
-            (var-get accelerated-vesting)   ;; token graduated, accelerated vesting
-            (<= (get id entry) u2))  ;; we're in first 3 entries (0,1,2)
+    (let ((distribution-start (var-get distribution-height)))
+        (if (<= (+ distribution-start (get height entry)) burn-block-height)
             (+ current-total (/ (* TOKENS-PER-SEAT (get percent entry)) u100))
-            current-total)))
+            (if (and 
+                (var-get accelerated-vesting)   ;; token graduated, accelerated vesting
+                (<= (get id entry) u13))          ;; we're in first 13 entries (0,1,2)
+                (+ current-total (/ (* TOKENS-PER-SEAT (get percent entry)) u100))
+                current-total))))
 
 ;; Claim vested tokens
 (define-public (claim (ft <faktory-token>))
     (let ((claimable (get-claimable-amount tx-sender))
           (seat-owner tx-sender))
-        (asserts! (is-eq (var-get token-contract) (var-get dao-token)) ERR-DISTRIBUTION-NOT-INITIALIZED) 
-        (asserts! (is-eq (contract-of ft) (unwrap-panic (var-get dao-token))) ERR-WRONG-TOKEN)
+        (asserts! (> (var-get distribution-height) u0) ERR-DISTRIBUTION-NOT-INITIALIZED) 
+        (asserts! (is-eq (contract-of ft) TOKEN-DAO) ERR-WRONG-TOKEN)
         (asserts! (> (default-to u0 (map-get? seats-owned tx-sender)) u0) ERR-NOT-SEAT-OWNER)
         (asserts! (> claimable u0) ERR-NOTHING-TO-CLAIM)
         (asserts! (>= (var-get ft-balance) claimable) ERR-CONTRACT-INSUFFICIENT-FUNDS)
@@ -347,8 +286,8 @@
 ;; Claim vested tokens on behalf of a specific holder
 (define-public (claim-on-behalf (ft <faktory-token>) (holder principal))
     (let ((claimable (get-claimable-amount holder)))
-        (asserts! (is-eq (var-get token-contract) (var-get dao-token)) ERR-DISTRIBUTION-NOT-INITIALIZED) 
-        (asserts! (is-eq (contract-of ft) (unwrap-panic (var-get dao-token))) ERR-WRONG-TOKEN)
+        (asserts! (> (var-get distribution-height) u0) ERR-DISTRIBUTION-NOT-INITIALIZED) 
+        (asserts! (is-eq (contract-of ft) TOKEN-DAO) ERR-WRONG-TOKEN)
         (asserts! (> (default-to u0 (map-get? seats-owned holder)) u0) ERR-NOT-SEAT-OWNER)
         (asserts! (> claimable u0) ERR-NOTHING-TO-CLAIM)
         (asserts! (>= (var-get ft-balance) claimable) ERR-CONTRACT-INSUFFICIENT-FUNDS) 
@@ -382,11 +321,9 @@
     (ok 
     {
         is-period-1-expired: (is-period-1-expired),
-        period-2-started: (> (var-get period-2-height) u0),
-        is-in-period-2: (is-in-period-2),
+        is-distribution-period: (> (var-get distribution-height) u0),
         total-users: (var-get total-users),
-        total-seats-taken: (var-get total-seats-taken),
-        distribution-initialized: (is-some (var-get token-contract))
+        total-seats-taken: (var-get total-seats-taken)
     }))
 
 (define-read-only (get-user-info (user principal))
@@ -395,15 +332,6 @@
         seats-owned: (default-to u0 (map-get? seats-owned user)),
         amount-claimed: (default-to u0 (map-get? claimed-amounts user)),
         claimable-amount: (get-claimable-amount user)
-    }))
-
-(define-read-only (get-period-2-info)
-    (ok
-    {
-        highest-holder: (get-highest-seat-holder),
-        period-2-blocks-remaining: (if (<= burn-block-height (+ (var-get period-2-height) PERIOD-2-LENGTH))
-            (- burn-block-height (+ (var-get period-2-height) PERIOD-2-LENGTH))
-            u0)
     }))
 
 (define-read-only (get-remaining-seats)
@@ -423,73 +351,24 @@
 (define-read-only (get-seat-holders)
     (ok {seat-holders: (var-get seat-holders)}))
 
-;; A multi-sig creator contract addresses after creating a multi-sig whose owners are 10 buyers resulting from period 1
-(define-public (set-contract-addresses (new-multi-sig principal) (new-dao-token principal) (new-dex-contract principal))
-    (begin
-        (asserts! (> (var-get period-2-height) u0) ERR-PERIOD-2-NOT-INITIALIZED)
-        (asserts! (is-eq tx-sender MULTI-SIG-CREATOR) ERR-NOT-AUTHORIZED)
-
-        (var-set dao-multi-sig (some new-multi-sig))
-        (var-set dao-token (some new-dao-token))
-        (var-set dex-contract (some new-dex-contract))
-        
-        (print {
-            type: "contract-addresses-updated",
-            dao-multi-sig: new-multi-sig,
-            dao-token: new-dao-token,
-            dex-contract: new-dex-contract,
-            multi-sig-creator: MULTI-SIG-CREATOR
-        })
-        (ok true)))
-
 ;; on DAO token deployment
-(define-public (initialize-token-distribution)
+(define-private (initialize-token-distribution)
     (begin
-        (asserts! (> (var-get period-2-height) u0) ERR-PERIOD-2-NOT-INITIALIZED)
-        (asserts! (is-eq (some tx-sender) (var-get dao-token)) ERR-NOT-AUTHORIZED)
-        (asserts! (is-none (var-get token-contract)) ERR-ALREADY-INITIALIZED)
-        (asserts! (is-some (var-get dao-multi-sig)) ERR-NOT-SET)
-        (asserts! (is-some (var-get dao-token)) ERR-NOT-SET)
-        (asserts! (is-some (var-get dex-contract)) ERR-NOT-SET)
+        ;; call DEX to open market
+        (try! (as-contract (contract-call? .name-faktory-dex open-market)))
+        ;; call Treasury to open voting -> seek advise from jason
         (try! (as-contract (contract-call? .sbtc-token 
-                             transfer DEX-AMOUNT tx-sender (unwrap-panic (var-get dex-contract)) none))) ;; 0.00250000 BTC to DEX  
+                             transfer DEX-AMOUNT tx-sender DEX-DAO none))) ;; 0.00250000 BTC to DEX  
         (try! (as-contract (contract-call? .sbtc-token 
-                             transfer MULTI-SIG-AMOUNT tx-sender (unwrap-panic  (var-get dao-multi-sig)) none))) ;; 0.00010000 BTC to multi-sig/admin -> covers contract deployment fees
+                             transfer MULTI-SIG-AMOUNT tx-sender FAKTORY1 none))) ;; 0.00010000 BTC to multi-sig/admin -> covers contract deployment fees
         (try! (as-contract (contract-call? .sbtc-token 
-                             transfer FEE-AMOUNT tx-sender MULTI-SIG-CREATOR none)))  ;; 0.00140000 BTC fees -> covers ordinals bot, pontis and faktory
-        (var-set token-contract (some tx-sender))
-        (var-set distribution-height (some burn-block-height))
-        (var-set last-airdrop-height (some burn-block-height))
-        (var-set ft-balance FT-INITIALIZED-BALANCE) ;; 20M tokens
-        (print {
-            type: "distribution-initialized",
-            token-contract: (var-get dao-token),
-            distribution-height: burn-block-height,
-            ft-balance: FT-INITIALIZED-BALANCE
-        })
-        (ok true)))
-
-(define-public (initialize-token-distribution-demo)
-    (begin
-        ;; (asserts! (> (var-get period-2-height) u0) ERR-PERIOD-2-NOT-INITIALIZED)
-        ;; (asserts! (is-eq (some tx-sender) (var-get dao-token)) ERR-NOT-AUTHORIZED)
-        ;; (asserts! (is-none (var-get token-contract)) ERR-ALREADY-INITIALIZED)
-        ;; (asserts! (is-some (var-get dao-multi-sig)) ERR-NOT-SET)
-        ;; (asserts! (is-some (var-get dao-token)) ERR-NOT-SET)
-        ;; (asserts! (is-some (var-get dex-contract)) ERR-NOT-SET)
-        ;; (try! (as-contract (contract-call? 'ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT.sbtc-token 
-        ;;                      transfer u250000 tx-sender (unwrap-panic (var-get dex-contract)) none))) ;; 0.00250000 BTC to DEX  
-        ;; (try! (as-contract (contract-call? 'ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT.sbtc-token 
-        ;;                      transfer u10000 tx-sender (unwrap-panic  (var-get dao-multi-sig)) none))) ;; 0.00010000 BTC to multi-sig/admin -> covers contract deployment fees
-        ;; (try! (as-contract (contract-call? 'ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT.sbtc-token 
-        ;;                      transfer u140000 tx-sender MULTI-SIG-CREATOR none)))  ;; 0.00140000 BTC fees -> covers ordinals bot, pontis and faktory
-        (var-set token-contract (some tx-sender))
-        (var-set distribution-height (some burn-block-height))
+                             transfer FEE-AMOUNT tx-sender FAKTORY1 none)))  ;; 0.00140000 BTC fees -> covers ordinals bot, pontis and faktory
+        (var-set distribution-height burn-block-height)
         (var-set last-airdrop-height (some burn-block-height))
         (var-set ft-balance FT-INITIALIZED-BALANCE) ;; 40M tokens
         (print {
             type: "distribution-initialized",
-            token-contract: contract-caller,
+            token-contract: TOKEN-DAO,
             distribution-height: burn-block-height,
             ft-balance: FT-INITIALIZED-BALANCE
         })
@@ -498,7 +377,7 @@
 ;;; on Bonding
 (define-public (toggle-bonded)
     (begin
-        (asserts! (is-eq contract-caller (unwrap! (var-get dex-contract) ERR-NOT-SET)) ERR-NOT-AUTHORIZED)
+        (asserts! (is-eq contract-caller DEX-DAO) ERR-NOT-AUTHORIZED)
         (var-set accelerated-vesting true) 
         (var-set final-airdrop-mode true) 
         (ok true)))
@@ -521,7 +400,7 @@
 (define-public (create-fees-receipt (amount uint))
     (let ((current-fees (var-get accumulated-fees)))
         ;; Only the DEX contract can call this function
-        (asserts! (is-eq contract-caller (unwrap! (var-get dex-contract) ERR-NOT-SET)) ERR-NOT-AUTHORIZED)
+        (asserts! (is-eq contract-caller DEX-DAO) ERR-NOT-AUTHORIZED)
         
         ;; Update accumulated fees
         (var-set accumulated-fees (+ current-fees amount))

@@ -57,7 +57,7 @@
                transfer (- fee pre-fee) tx-sender FEE-RECEIVER none)) 
         (try! (contract-call? .sbtc-token 
               transfer pre-fee tx-sender .name-pre-faktory none))
-        (try! (as-contract (contract-call? .name-pre-faktory create-fees-receipt pre-fee))) ;; this address could be a multi-sig        
+        (try! (as-contract (contract-call? .name-pre-faktory create-fees-receipt pre-fee)))        
         (try! (contract-call? .sbtc-token 
                transfer stx-in tx-sender (as-contract tx-sender) none))
           (try! (as-contract (contract-call? ft transfer tokens-out tx-sender ft-receiver none)))
@@ -76,7 +76,7 @@
                 ;;          'ST295MNE41DC74QYCPRS8N37YYMC06N6Q3VQDZ6G1.xyk-core-v-1-2 
                 ;;              create-pool 
                 ;;              'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.xyk-pool-stx-name-v-1-1
-                ;;              'ST295MNE41DC74QYCPRS8N37YYMC06N6Q3VQDZ6G1.token-stx-v-1-2 
+                ;;              'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.sbtc-token
                 ;;              ft
                 ;;              amm-ustx 
                 ;;              amm-amount 
@@ -88,7 +88,7 @@
                 (var-set open false)
                 (var-set stx-balance u0)
                 (var-set ft-balance u0)
-               (try! (as-contract (contract-call? .name-pre-faktory toggle-bonded))) ;; this address could be a multi-sig
+               (try! (as-contract (contract-call? .name-pre-faktory toggle-bonded))) 
                 (print {type: "buy", ft: (contract-of ft), tokens-out: tokens-out, ustx: ubtc, premium-amount: premium-amount, amm-amount: amm-amount,
                         amm-ustx: amm-ustx,
                         stx-balance: u0, ft-balance: u0,
@@ -193,12 +193,20 @@
     (define-read-only (get-open)
       (ok (var-get open)))
     
+    (define-public (open-market) 
+      (begin 
+        (asserts! (is-eq contract-caller PRELAUNCH-DAO) ERR-UNAUTHORIZED-CALLER)
+        (var-set open true)
+        (ok true)
+      )
+    )
+    
     ;; boot dex
       (begin
         (var-set fak-ustx FAK_STX)
         (var-set ft-balance u20000000000000000)
         (var-set stx-balance u0)
-        (var-set open true)
+        ;; (var-set open true) -> remove this set by pre-launch 
           (print { 
               type: "faktory-dex-trait-v1-1", 
               dexContract: (as-contract tx-sender),

@@ -96,12 +96,9 @@
 
 (begin 
     ;; ft distribution
-    ;; (try! (ft-mint? NAME (/ (* MAX u80) u100) .name-treasury)) ;; 80% treasury
+    (try! (ft-mint? NAME (/ (* MAX u80) u100) .name-treasury)) ;; 80% treasury
     (try! (ft-mint? NAME (/ (* MAX u16) u100) .name-faktory-dex)) ;; 16% dex ;; Rafa put back on !not 20%
     (try! (ft-mint? NAME (/ (* MAX u4) u100) .name-pre-faktory)) ;; 4% faktory ;; Rafa put back on
-
-    ;; (try! (as-contract (contract-call? .name-pre-faktory initialize-token-distribution-demo))) ;; this address could be a multi-sig  
-    (unwrap! (as-contract (contract-call? .name-pre-faktory initialize-token-distribution-demo)) (err "failed to initialize-token-distribution-demo"))
 
     (print { 
         type: "faktory-trait-v1", 
