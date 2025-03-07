@@ -86,7 +86,7 @@
                 (var-set open false)
                 (var-set stx-balance u0)
                 (var-set ft-balance u0)
-               (try! (as-contract (contract-call? PRE-CONTRACT toggle-bonded))) 
+                (try! (as-contract (contract-call? PRE-CONTRACT toggle-bonded))) 
                 (print {type: "buy", ft: (contract-of ft), tokens-out: tokens-out, ustx: ubtc, premium-amount: premium-amount, amm-amount: amm-amount,
                         amm-ustx: amm-ustx,
                         stx-balance: u0, ft-balance: u0,
