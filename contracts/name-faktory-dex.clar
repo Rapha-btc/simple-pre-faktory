@@ -18,9 +18,10 @@
     (define-constant G-RECEIVER 'ST3BA7GVAKQTCTX68VPAD9W8CBYG71JNMGBCAD48N)
   
     (define-constant FAKTORY 'STTWD9SPRQVD3P733V89SV0P8RZRZNQADG034F0A)
-    (define-constant ORIGINATOR 'STTWD9SPRQVD3P733V89SV0P8RZRZNQADG034F0A) ;; this is creator address
+    (define-constant ORIGINATOR 'STTWD9SPRQVD3P733V89SV0P8RZRZNQADG034F0A)
     (define-constant DEX-TOKEN .name-faktory)
     (define-constant PRE-CONTRACT .name-pre-faktory)
+    (define-constant SBTC .sbtc-token)
     
     ;; token constants
     (define-constant TARGET_STX u5000000)
@@ -54,13 +55,10 @@
               (new-stx (get new-stx in-info))
               (ft-receiver tx-sender)
               )
-        (try! (contract-call? .sbtc-token 
-               transfer (- fee pre-fee) tx-sender FEE-RECEIVER none)) 
-        (try! (contract-call? .sbtc-token 
-              transfer pre-fee tx-sender PRE-CONTRACT none))
+        (try! (contract-call? SBTC transfer (- fee pre-fee) tx-sender FEE-RECEIVER none)) 
+        (try! (contract-call? SBTC transfer pre-fee tx-sender PRE-CONTRACT none))
         (try! (as-contract (contract-call? PRE-CONTRACT create-fees-receipt pre-fee)))        
-        (try! (contract-call? .sbtc-token 
-               transfer stx-in tx-sender (as-contract tx-sender) none))
+        (try! (contract-call? SBTC transfer stx-in tx-sender (as-contract tx-sender) none))
           (try! (as-contract (contract-call? ft transfer tokens-out tx-sender ft-receiver none)))
           (if (>= new-stx TARGET_STX)
               (let ((premium-amount (/ (* new-ft (var-get premium)) u100))
@@ -77,15 +75,14 @@
                 ;;          'ST295MNE41DC74QYCPRS8N37YYMC06N6Q3VQDZ6G1.xyk-core-v-1-2 
                 ;;              create-pool 
                 ;;              'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.xyk-pool-sbtc-name-v-1-1
-                ;;              'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.sbtc-token
+                ;;              SBTC
                 ;;              ft
                 ;;              amm-ustx 
                 ;;              amm-amount 
                 ;;              xyk-burn-amount 
                 ;;              u10 u40 u10 u40 
                 ;;              'ST27Q7Z7P5MTJN2B3M9Q406XPCDB1VFZJ3KWX3CES xyk-pool-uri true)))
-                (try! (as-contract (contract-call? .sbtc-token 
-                                    transfer GRAD-FEE tx-sender G-RECEIVER none)))
+                (try! (as-contract (contract-call? SBTC transfer GRAD-FEE tx-sender G-RECEIVER none)))
                 (var-set open false)
                 (var-set stx-balance u0)
                 (var-set ft-balance u0)
@@ -152,12 +149,9 @@
               )
           (asserts! (>= total-stx stx-out) ERR-STX-BALANCE-TOO-LOW)
           (try! (contract-call? ft transfer amount tx-sender (as-contract tx-sender) none))
-          (try! (as-contract (contract-call? .sbtc-token 
-                              transfer stx-to-receiver tx-sender stx-receiver none)))
-          (try! (as-contract (contract-call? .sbtc-token 
-                              transfer (- fee pre-fee) tx-sender FEE-RECEIVER none))) 
-          (try! (contract-call? .sbtc-token 
-                              transfer pre-fee tx-sender PRE-CONTRACT none))
+          (try! (as-contract (contract-call? SBTC transfer stx-to-receiver tx-sender stx-receiver none)))
+          (try! (as-contract (contract-call? SBTC transfer (- fee pre-fee) tx-sender FEE-RECEIVER none))) 
+          (try! (contract-call? SBTC transfer pre-fee tx-sender PRE-CONTRACT none))
           (try! (as-contract (contract-call? PRE-CONTRACT create-fees-receipt pre-fee))) ;; this address could be a multi-sig        
           (var-set stx-balance new-stx)
           (var-set ft-balance new-ft)
@@ -206,7 +200,6 @@
         (var-set fak-ustx FAK_STX)
         (var-set ft-balance u20000000000000000)
         (var-set stx-balance u0)
-        ;; (var-set open true) -> remove this set by pre-launch 
           (print { 
               type: "faktory-dex-trait-v1-1", 
               dexContract: (as-contract tx-sender),

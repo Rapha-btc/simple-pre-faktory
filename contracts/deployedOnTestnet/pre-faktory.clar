@@ -1,4 +1,4 @@
-;; 65127256b43547735aa737ab22295e71393696052ebd7753da26e7d0368bec3d
+;; a1279521892f64e7d34eaa4f7daeec2723cc0e5fa808dacb5aa2f4f623fe9ff0
 ;; aibtc.com DAO faktory.fun PRE @version 1.0
 ;; Pre-launch contract for token distribution
 ;; Dynamic allocation: 1-7 seats per user in Period 1
@@ -14,7 +14,7 @@
 (define-constant MIN-USERS u10)
 (define-constant MAX-SEATS-PER-USER u7)
 (define-constant PRICE-PER-SEAT u20000) ;; 20K sats per seat
-(define-constant TOKENS-PER-SEAT u200000000000000) ;; 2M tokens per seat if supply 1B with 8 decimals
+(define-constant TOKENS-PER-SEAT u200000000000000) ;; 2M tokens per seat if supply 1B
 (define-constant EXPIRATION-PERIOD u2100) ;; 1 Stacks reward cycle in PoX-4
 (define-constant DEX-AMOUNT u250000)
 (define-constant MULTI-SIG-AMOUNT u10000)
@@ -67,9 +67,10 @@
 (define-data-var market-open bool false)
 (define-data-var governance-active bool false)
 
-;; Determined after multi-sig creation
-(define-constant TOKEN-DAO 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.simple12-faktory) ;; param
-(define-constant DEX-DAO 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.simple12-faktory-dex) ;; param
+;; Token, Dex and sBTC
+(define-constant TOKEN-DAO 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.simple13-faktory) ;; param
+(define-constant DEX-DAO 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.simple13-faktory-dex) ;; param
+(define-constant SBTC 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.sbtc-token)
 
 ;; Helper vars
 (define-data-var target-owner principal 'STTWD9SPRQVD3P733V89SV0P8RZRZNQADG034F0A) ;; 'SP000000000000000000002Q6VF78
@@ -170,8 +171,7 @@
         (asserts! (< current-seats SEATS) ERR-NO-SEATS-LEFT)
         
         ;; Process payment
-        (match (contract-call? 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.sbtc-token  
-                    transfer (* PRICE-PER-SEAT actual-seats) tx-sender (as-contract tx-sender) none)
+        (match (contract-call? SBTC transfer (* PRICE-PER-SEAT actual-seats) tx-sender (as-contract tx-sender) none)
             success 
                 (begin
                     (if (is-eq user-seats u0) 
@@ -211,8 +211,7 @@
         
         (var-set target-owner tx-sender)
         ;; Process refund
-        (match (as-contract (contract-call? 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.sbtc-token  
-                            transfer (* PRICE-PER-SEAT user-seats) tx-sender seat-owner none))
+        (match (as-contract (contract-call? SBTC transfer (* PRICE-PER-SEAT user-seats) tx-sender seat-owner none))
             success 
                 (let ((is-removed (unwrap! (remove-seat-holder) ERR-REMOVING-HOLDER)))
                     (map-delete seats-owned tx-sender)
@@ -350,29 +349,26 @@
     (ok (var-get governance-active))
 )
 
-;; on pre-launch successful completion
-(define-private (initialize-token-distribution)
-    (begin
-        (var-set market-open true)
-        (var-set governance-active true) ;; jason:  in core/action proposal, checks from create proposal, deadlocks anything happening
-        (try! (as-contract (contract-call? 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.sbtc-token  
-                             transfer DEX-AMOUNT tx-sender DEX-DAO none))) ;; 0.00250000 BTC to DEX  
-        (try! (as-contract (contract-call? 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.sbtc-token  
-                             transfer MULTI-SIG-AMOUNT tx-sender FAKTORY1 none))) ;; 0.00010000 BTC to multi-sig/admin -> covers contract deployment fees
-        (try! (as-contract (contract-call? 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.sbtc-token  
-                             transfer FEE-AMOUNT tx-sender FAKTORY1 none)))  ;; 0.00140000 BTC fees -> covers ordinals bot, pontis and faktory
-        (var-set distribution-height burn-block-height)
-        (var-set last-airdrop-height (some burn-block-height))
-        (var-set ft-balance FT-INITIALIZED-BALANCE) ;; 40M tokens
-        (print {
-            type: "distribution-initialized",
-            token-contract: TOKEN-DAO,
-            distribution-height: burn-block-height,
-            ft-balance: FT-INITIALIZED-BALANCE
-        })
-        (ok true)))
+  ;; on pre-launch successful completion
+  (define-private (initialize-token-distribution)
+      (begin
+          (var-set market-open true)
+          (var-set governance-active true) ;; jason:  in core/action proposal, checks from create proposal, deadlocks anything happening
+          (try! (as-contract (contract-call? SBTC transfer DEX-AMOUNT tx-sender DEX-DAO none))) ;; 0.00250000 BTC to DEX  
+          (try! (as-contract (contract-call? SBTC transfer MULTI-SIG-AMOUNT tx-sender FAKTORY1 none))) ;; 0.00010000 BTC  -> covers contract deployment gaz fees
+          (try! (as-contract (contract-call? SBTC transfer FEE-AMOUNT tx-sender FAKTORY1 none)))  ;; 0.00140000 BTC fees -> covers ordinals bot, xlink and faktory
+          (var-set distribution-height burn-block-height)
+          (var-set last-airdrop-height (some burn-block-height))
+          (var-set ft-balance FT-INITIALIZED-BALANCE) ;; 40M tokens
+          (print {
+              type: "distribution-initialized",
+              token-contract: TOKEN-DAO,
+              distribution-height: burn-block-height,
+              ft-balance: FT-INITIALIZED-BALANCE
+          })
+          (ok true)))
 
-;;; on Bonding
+;; on Bonding
 (define-public (toggle-bonded)
     (begin
         (asserts! (is-eq contract-caller DEX-DAO) ERR-NOT-AUTHORIZED)
@@ -460,8 +456,7 @@
         
         ;; Only distribute if the user's share is greater than zero
         (if (> user-share u0)
-                (match (as-contract (contract-call? 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.sbtc-token  
-                    transfer user-share tx-sender holder none))
+                (match (as-contract (contract-call? SBTC transfer user-share tx-sender holder none))
                     success
                         (begin 
                             (print {
