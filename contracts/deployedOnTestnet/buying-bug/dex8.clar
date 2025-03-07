@@ -1,9 +1,9 @@
-;; 594f5fc947937dc93684965a4f7d7cd057d87c94fa9423bd256a9fc35907159f
+;; 651c46d1e1e9a01ffae0adb085877bbdcb9197e6aec7de12aa305167a2b8e39f
     ;; aibtc.dev DAO faktory.fun DEX @version 1.0
   
-    (impl-trait .aibtc-dao-traits-v2.faktory-dex) ;; 'ST3YT0XW92E6T2FE59B2G5N2WNNFSBZ6MZKQS5D18
-    (impl-trait .faktory-dex-trait-v1-1.dex-trait) ;; 'STTWD9SPRQVD3P733V89SV0P8RZRZNQADG034F0A
-    (use-trait faktory-token .faktory-trait-v1.sip-010-trait) ;; 'STTWD9SPRQVD3P733V89SV0P8RZRZNQADG034F0A
+    (impl-trait 'ST3YT0XW92E6T2FE59B2G5N2WNNFSBZ6MZKQS5D18.aibtc-dao-traits-v2.faktory-dex)
+    (impl-trait 'STTWD9SPRQVD3P733V89SV0P8RZRZNQADG034F0A.faktory-dex-trait-v1-1.dex-trait)
+    (use-trait faktory-token 'STTWD9SPRQVD3P733V89SV0P8RZRZNQADG034F0A.faktory-trait-v1.sip-010-trait) 
     
     (define-constant ERR-MARKET-CLOSED (err u1001))
     (define-constant ERR-STX-NON-POSITIVE (err u1002))
@@ -18,10 +18,8 @@
     (define-constant G-RECEIVER 'ST3BA7GVAKQTCTX68VPAD9W8CBYG71JNMGBCAD48N)
   
     (define-constant FAKTORY 'STTWD9SPRQVD3P733V89SV0P8RZRZNQADG034F0A)
-    (define-constant ORIGINATOR 'STTWD9SPRQVD3P733V89SV0P8RZRZNQADG034F0A)
-    (define-constant DEX-TOKEN .name-faktory)
-    (define-constant PRE-CONTRACT .name-pre-faktory)
-    (define-constant SBTC .sbtc-token)
+    (define-constant ORIGINATOR 'SP7SX9AT5H41YGYRV8MACR1NESBYF6TRMC6P82DV) ;; this is creator address
+    (define-constant DEX-TOKEN 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.simple8-faktory)
     
     ;; token constants
     (define-constant TARGET_STX u5000000)
@@ -55,10 +53,13 @@
               (new-stx (get new-stx in-info))
               (ft-receiver tx-sender)
               )
-        (try! (contract-call? SBTC transfer (- fee pre-fee) tx-sender FEE-RECEIVER none)) 
-        (try! (contract-call? SBTC transfer pre-fee tx-sender PRE-CONTRACT none))
-        (try! (as-contract (contract-call? PRE-CONTRACT create-fees-receipt pre-fee)))        
-        (try! (contract-call? SBTC transfer stx-in tx-sender (as-contract tx-sender) none))
+        (try! (contract-call? 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.sbtc-token 
+               transfer fee tx-sender FEE-RECEIVER none)) ;; Rafa put back on (- fee pre-fee)
+        ;; Rafa put back on: (try! (contract-call? 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.sbtc-token 
+              ;; transfer pre-fee tx-sender 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.simple8-pre-faktory none))
+        ;; Rafa put back on: (try! (as-contract (contract-call? 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.simple8-pre-faktory create-fees-receipt pre-fee))) ;; this address could be a multi-sig        
+        (try! (contract-call? 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.sbtc-token 
+               transfer stx-in tx-sender (as-contract tx-sender) none))
           (try! (as-contract (contract-call? ft transfer tokens-out tx-sender ft-receiver none)))
           (if (>= new-stx TARGET_STX)
               (let ((premium-amount (/ (* new-ft (var-get premium)) u100))
@@ -70,23 +71,24 @@
                     (xyk-burn-amount (- (sqrti (* amm-ustx amm-amount)) u1)))
               (try! (as-contract (contract-call? ft transfer agent-amount tx-sender FAKTORY none)))
               (try! (as-contract (contract-call? ft transfer originator-amount tx-sender ORIGINATOR none)))
-                ;; (try! (as-contract 
-                ;;        (contract-call? 
-                ;;          'ST295MNE41DC74QYCPRS8N37YYMC06N6Q3VQDZ6G1.xyk-core-v-1-2 
-                ;;              create-pool 
-                ;;              'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.xyk-pool-sbtc-name-v-1-1
-                ;;              SBTC
-                ;;              ft
-                ;;              amm-ustx 
-                ;;              amm-amount 
-                ;;              xyk-burn-amount 
-                ;;              u10 u40 u10 u40 
-                ;;              'ST27Q7Z7P5MTJN2B3M9Q406XPCDB1VFZJ3KWX3CES xyk-pool-uri true)))
-                (try! (as-contract (contract-call? SBTC transfer GRAD-FEE tx-sender G-RECEIVER none)))
+                (try! (as-contract 
+                       (contract-call? 
+                         'ST295MNE41DC74QYCPRS8N37YYMC06N6Q3VQDZ6G1.xyk-core-v-1-2 
+                             create-pool 
+                             'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.xyk-pool-sbtc-simple8-v-1-1
+                             'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.sbtc-token
+                             ft
+                             amm-ustx 
+                             amm-amount 
+                             xyk-burn-amount 
+                             u10 u40 u10 u40 
+                             'ST27Q7Z7P5MTJN2B3M9Q406XPCDB1VFZJ3KWX3CES xyk-pool-uri true)))
+                (try! (as-contract (contract-call? 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.sbtc-token 
+                                    transfer GRAD-FEE tx-sender G-RECEIVER none)))
                 (var-set open false)
                 (var-set stx-balance u0)
                 (var-set ft-balance u0)
-                (try! (as-contract (contract-call? PRE-CONTRACT toggle-bonded))) 
+               ;; Rafa put back on: (try! (as-contract (contract-call? 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.simple8-pre-faktory toggle-accelerated-vesting))) ;; this address could be a multi-sig
                 (print {type: "buy", ft: (contract-of ft), tokens-out: tokens-out, ustx: ubtc, premium-amount: premium-amount, amm-amount: amm-amount,
                         amm-ustx: amm-ustx,
                         stx-balance: u0, ft-balance: u0,
@@ -149,10 +151,13 @@
               )
           (asserts! (>= total-stx stx-out) ERR-STX-BALANCE-TOO-LOW)
           (try! (contract-call? ft transfer amount tx-sender (as-contract tx-sender) none))
-          (try! (as-contract (contract-call? SBTC transfer stx-to-receiver tx-sender stx-receiver none)))
-          (try! (as-contract (contract-call? SBTC transfer (- fee pre-fee) tx-sender FEE-RECEIVER none))) 
-          (try! (contract-call? SBTC transfer pre-fee tx-sender PRE-CONTRACT none))
-          (try! (as-contract (contract-call? PRE-CONTRACT create-fees-receipt pre-fee))) ;; this address could be a multi-sig        
+          (try! (as-contract (contract-call? 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.sbtc-token 
+                              transfer stx-to-receiver tx-sender stx-receiver none)))
+          (try! (as-contract (contract-call? 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.sbtc-token 
+                              transfer fee tx-sender FEE-RECEIVER none))) ;; Rafa put back on (- fee pre-fee)
+          ;; Rafa put back on: (try! (contract-call? 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.sbtc-token 
+              ;; transfer pre-fee tx-sender 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.simple8-pre-faktory none))
+          ;; Rafa put back on: (try! (as-contract (contract-call? 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.simple8-pre-faktory create-fees-receipt pre-fee))) ;; this address could be a multi-sig        
           (var-set stx-balance new-stx)
           (var-set ft-balance new-ft)
           (print {type: "sell", ft: (contract-of ft), amount: amount, stx-to-receiver: stx-to-receiver, maker: tx-sender,
@@ -188,13 +193,6 @@
     (define-read-only (get-open)
       (ok (var-get open)))
     
-    (define-public (open-market) 
-      (let ((is-prelaunch-allowing (unwrap-panic (contract-call? PRE-CONTRACT is-market-open))))
-        (asserts! is-prelaunch-allowing ERR-MARKET-CLOSED)
-        (var-set open true)
-        (ok true))
-    )
-    
     ;; boot dex
       (begin
         (var-set fak-ustx FAK_STX)
@@ -204,7 +202,7 @@
           (print { 
               type: "faktory-dex-trait-v1-1", 
               dexContract: (as-contract tx-sender),
-            ;;   ammReceiver: 'ST295MNE41DC74QYCPRS8N37YYMC06N6Q3VQDZ6G1.xyk-core-v-1-2,
-            ;;   poolName: 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.xyk-pool-stx-name-v-1-1
+              ammReceiver: 'ST295MNE41DC74QYCPRS8N37YYMC06N6Q3VQDZ6G1.xyk-core-v-1-2,
+              poolName: 'STV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RJ5XDY2.xyk-pool-sbtc-simple8-v-1-1
          })
         (ok true))
