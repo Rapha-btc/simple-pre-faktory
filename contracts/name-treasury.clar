@@ -17,6 +17,14 @@
 (define-constant ERR_UNKNOWN_ASSSET (err u6001))
 (define-constant TREASURY (as-contract tx-sender))
 
+(define-data-var governance-active bool false)
+
+(define-public (activate-governance)
+  (let ((is-active (unwrap-panic (contract-call? .name-pre-faktory is-governance-active))))
+    (asserts! is-active ERR_UNAUTHORIZED)
+    (var-set governance-active true)
+    (ok true)))
+
 ;; data maps
 ;;
 
@@ -68,41 +76,41 @@
   )
 )
 
-;; deposit FT to the treasury
-(define-public (deposit-ft (ft <ft-trait>) (amount uint))
-  (begin
-    (asserts! (is-allowed-asset (contract-of ft)) ERR_UNKNOWN_ASSSET)
-    (print {
-      notification: "deposit-ft",
-      payload: {
-        amount: amount,
-        assetContract: (contract-of ft),
-        caller: contract-caller,
-        recipient: TREASURY,
-        sender: tx-sender
-      }
-    })
-    (contract-call? ft transfer amount tx-sender TREASURY none)
-  )
-)
+;; ;; deposit FT to the treasury
+;; (define-public (deposit-ft (ft <ft-trait>) (amount uint))
+;;   (begin
+;;     (asserts! (is-allowed-asset (contract-of ft)) ERR_UNKNOWN_ASSSET)
+;;     (print {
+;;       notification: "deposit-ft",
+;;       payload: {
+;;         amount: amount,
+;;         assetContract: (contract-of ft),
+;;         caller: contract-caller,
+;;         recipient: TREASURY,
+;;         sender: tx-sender
+;;       }
+;;     })
+;;     (contract-call? ft transfer amount tx-sender TREASURY none)
+;;   )
+;; )
 
-;; deposit NFT to the treasury
-(define-public (deposit-nft (nft <nft-trait>) (id uint))
-  (begin
-    (asserts! (is-allowed-asset (contract-of nft)) ERR_UNKNOWN_ASSSET)
-    (print {
-      notification: "deposit-nft",
-      payload: {
-        assetContract: (contract-of nft),
-        caller: contract-caller,
-        recipient: TREASURY,
-        sender: tx-sender,
-        tokenId: id
-      }
-    })
-    (contract-call? nft transfer id tx-sender TREASURY)
-  )
-)
+;; ;; deposit NFT to the treasury
+;; (define-public (deposit-nft (nft <nft-trait>) (id uint))
+;;   (begin
+;;     (asserts! (is-allowed-asset (contract-of nft)) ERR_UNKNOWN_ASSSET)
+;;     (print {
+;;       notification: "deposit-nft",
+;;       payload: {
+;;         assetContract: (contract-of nft),
+;;         caller: contract-caller,
+;;         recipient: TREASURY,
+;;         sender: tx-sender,
+;;         tokenId: id
+;;       }
+;;     })
+;;     (contract-call? nft transfer id tx-sender TREASURY)
+;;   )
+;; )
 
 ;; withdraw STX from the treasury
 (define-public (withdraw-stx (amount uint) (recipient principal))
@@ -121,42 +129,42 @@
   )
 )
 
-;; withdraw FT from the treasury
-(define-public (withdraw-ft (ft <ft-trait>) (amount uint) (recipient principal))
-  (begin
-    (try! (is-dao-or-extension))
-    (asserts! (is-allowed-asset (contract-of ft)) ERR_UNKNOWN_ASSSET)
-    (print {
-      notification: "withdraw-ft",
-      payload: {
-        assetContract: (contract-of ft),
-        caller: contract-caller,
-        recipient: recipient,
-        sender: tx-sender
-      }
-    })
-    (as-contract (contract-call? ft transfer amount TREASURY recipient none))
-  )
-)
+;; ;; withdraw FT from the treasury
+;; (define-public (withdraw-ft (ft <ft-trait>) (amount uint) (recipient principal))
+;;   (begin
+;;     (try! (is-dao-or-extension))
+;;     (asserts! (is-allowed-asset (contract-of ft)) ERR_UNKNOWN_ASSSET)
+;;     (print {
+;;       notification: "withdraw-ft",
+;;       payload: {
+;;         assetContract: (contract-of ft),
+;;         caller: contract-caller,
+;;         recipient: recipient,
+;;         sender: tx-sender
+;;       }
+;;     })
+;;     (as-contract (contract-call? ft transfer amount TREASURY recipient none))
+;;   )
+;; )
 
 ;; withdraw NFT from the treasury
-(define-public (withdraw-nft (nft <nft-trait>) (id uint) (recipient principal))
-  (begin
-    (try! (is-dao-or-extension))
-    (asserts! (is-allowed-asset (contract-of nft)) ERR_UNKNOWN_ASSSET)
-    (print {
-      notification: "withdraw-nft",
-      payload: {
-        assetContract: (contract-of nft),
-        caller: contract-caller,
-        recipient: recipient,
-        sender: tx-sender,
-        tokenId: id
-      }
-    })
-    (as-contract (contract-call? nft transfer id TREASURY recipient))
-  )
-)
+;; (define-public (withdraw-nft (nft <nft-trait>) (id uint) (recipient principal))
+;;   (begin
+;;     (try! (is-dao-or-extension))
+;;     (asserts! (is-allowed-asset (contract-of nft)) ERR_UNKNOWN_ASSSET)
+;;     (print {
+;;       notification: "withdraw-nft",
+;;       payload: {
+;;         assetContract: (contract-of nft),
+;;         caller: contract-caller,
+;;         recipient: recipient,
+;;         sender: tx-sender,
+;;         tokenId: id
+;;       }
+;;     })
+;;     (as-contract (contract-call? nft transfer id TREASURY recipient))
+;;   )
+;; )
 
 ;; delegate STX for stacking
 ;; (define-public (delegate-stx (maxAmount uint) (to principal))
@@ -210,11 +218,16 @@
 ;; private functions
 ;;
 
-;; (define-private (is-dao-or-extension)
-;;   (ok (asserts! (or (is-eq tx-sender 'SP2XCME6ED8RERGR9R7YDZW7CA6G3F113Y8JMVA46.name-base-dao)
-;;     (contract-call? 'SP2XCME6ED8RERGR9R7YDZW7CA6G3F113Y8JMVA46.name-base-dao is-extension contract-caller)) ERR_UNAUTHORIZED
-;;   ))
-;; )
+(define-private (is-dao-or-extension)
+    (begin
+    ;; First check if governance is active
+    (asserts! (var-get governance-active) ERR_UNAUTHORIZED)
+    (ok true)
+    ;; (ok (asserts! (or (is-eq tx-sender 'SP2XCME6ED8RERGR9R7YDZW7CA6G3F113Y8JMVA46.name-base-dao)
+    ;;   (contract-call? 'SP2XCME6ED8RERGR9R7YDZW7CA6G3F113Y8JMVA46.name-base-dao is-extension contract-caller)) ERR_UNAUTHORIZED
+    ;; ))
+    )
+)
 
 (define-private (allow-assets-iter (item {token: principal, enabled: bool}))
   (begin

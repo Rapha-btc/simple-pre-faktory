@@ -66,6 +66,8 @@
 (define-data-var deployment-height uint burn-block-height)
 (define-data-var accelerated-vesting bool false)
 (define-data-var intialized bool false)
+(define-data-var market-open bool false)
+(define-data-var governance-active bool false)
 
 ;; Determined after multi-sig creation
 (define-constant TOKEN-DAO .name-faktory) ;; param
@@ -351,12 +353,19 @@
 (define-read-only (get-seat-holders)
     (ok {seat-holders: (var-get seat-holders)}))
 
-;; on DAO token deployment
+(define-read-only (is-market-open) 
+    (ok (var-get market-open))
+)
+
+(define-read-only (is-governance-active)
+    (ok (var-get governance-active))
+)
+
+;; on pre-launch successful completion
 (define-private (initialize-token-distribution)
     (begin
-        ;; call DEX to open market
-        (try! (as-contract (contract-call? .name-faktory-dex open-market)))
-        ;; call Treasury to open voting -> seek advise from jason
+        (var-set market-open true)
+        (var-set governance-active true) ;; jason: we need to amend treasury contract to allow governance to be active
         (try! (as-contract (contract-call? .sbtc-token 
                              transfer DEX-AMOUNT tx-sender DEX-DAO none))) ;; 0.00250000 BTC to DEX  
         (try! (as-contract (contract-call? .sbtc-token 

@@ -194,11 +194,10 @@
       (ok (var-get open)))
     
     (define-public (open-market) 
-      (begin 
-        (asserts! (is-eq contract-caller PRELAUNCH-DAO) ERR-UNAUTHORIZED-CALLER)
+      (let ((is-prelaunch-allowing (unwrap-panic (contract-call? .name-pre-faktory is-market-open))))
+        (asserts! is-prelaunch-allowing ERR-MARKET-CLOSED)
         (var-set open true)
-        (ok true)
-      )
+        (ok true))
     )
     
     ;; boot dex

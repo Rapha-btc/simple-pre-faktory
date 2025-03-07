@@ -35,6 +35,11 @@ path = 'contracts/name-pre-faktory.clar'
 clarity_version = 2
 epoch = 2.5
 
+[contracts.name-treasury]
+path = 'contracts/name-treasury.clar'
+clarity_version = 2
+epoch = 2.5
+
 
 [contracts.sbtc-token]
 path = 'contracts/sbtc-token.clar'
