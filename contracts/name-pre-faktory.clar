@@ -21,7 +21,6 @@
 (define-constant FEE-AMOUNT u140000)
 
 (define-constant FT-INITIALIZED-BALANCE u4000000000000000) ;; 40M tokens for pre-launch if supply 1B
-(define-constant ACCELERATED-PERCENT u60) 
 
 ;; Vesting schedule (percentages add up to 100)
 (define-constant VESTING-SCHEDULE
@@ -65,7 +64,6 @@
 (define-data-var distribution-height uint u0)
 (define-data-var deployment-height uint burn-block-height)
 (define-data-var accelerated-vesting bool false)
-(define-data-var intialized bool false)
 (define-data-var market-open bool false)
 (define-data-var governance-active bool false)
 
@@ -86,26 +84,17 @@
 ;; Error constants
 (define-constant ERR-NO-SEATS-LEFT (err u301))
 (define-constant ERR-NOT-SEAT-OWNER (err u302))
-(define-constant ERR-NOT-SET (err u303))
 (define-constant ERR-NOTHING-TO-CLAIM (err u304))
 (define-constant ERR-NOT-AUTHORIZED (err u305))
-(define-constant ERR-ALREADY-INITIALIZED (err u306))
 (define-constant ERR-WRONG-TOKEN (err u307))
-(define-constant ERR-ALREADY-EXPIRED (err u308))
 (define-constant ERR-NOT-EXPIRED (err u309))
-(define-constant ERR-NO-REFUND (err u310))
 (define-constant ERR-CONTRACT-INSUFFICIENT-FUNDS (err u311))
-(define-constant ERR-PERIOD-2-MULTIPLE-SEATS (err u312))
 (define-constant ERR-INVALID-SEAT-COUNT (err u313))
 (define-constant ERR-SLICE-FAILED (err u314))
 (define-constant ERR-TOO-LONG (err u315))
 (define-constant ERR-REMOVING-HOLDER (err u316))
-(define-constant ERR-HIGHEST-ONE-SEAT (err u317))
-(define-constant ERR-NOT-BONDED (err u318))
-(define-constant ERR-DISTRIBUTION-NOT-SET (err u319))
 (define-constant ERR-DISTRIBUTION-ALREADY-SET (err u320))
 (define-constant ERR-DISTRIBUTION-NOT-INITIALIZED (err u321))
-(define-constant ERR-HIGHEST-HOLDER (err u322))
 
 ;; Helper functions for period management
 (define-private (is-period-1-expired)
