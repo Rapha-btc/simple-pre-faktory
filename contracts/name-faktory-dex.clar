@@ -20,6 +20,7 @@
     (define-constant FAKTORY 'STTWD9SPRQVD3P733V89SV0P8RZRZNQADG034F0A)
     (define-constant ORIGINATOR 'STTWD9SPRQVD3P733V89SV0P8RZRZNQADG034F0A) ;; this is creator address
     (define-constant DEX-TOKEN .name-faktory)
+    (define-constant PRE-CONTRACT .name-pre-faktory)
     
     ;; token constants
     (define-constant TARGET_STX u5000000)
@@ -56,8 +57,8 @@
         (try! (contract-call? .sbtc-token 
                transfer (- fee pre-fee) tx-sender FEE-RECEIVER none)) 
         (try! (contract-call? .sbtc-token 
-              transfer pre-fee tx-sender .name-pre-faktory none))
-        (try! (as-contract (contract-call? .name-pre-faktory create-fees-receipt pre-fee)))        
+              transfer pre-fee tx-sender PRE-CONTRACT none))
+        (try! (as-contract (contract-call? PRE-CONTRACT create-fees-receipt pre-fee)))        
         (try! (contract-call? .sbtc-token 
                transfer stx-in tx-sender (as-contract tx-sender) none))
           (try! (as-contract (contract-call? ft transfer tokens-out tx-sender ft-receiver none)))
@@ -88,7 +89,7 @@
                 (var-set open false)
                 (var-set stx-balance u0)
                 (var-set ft-balance u0)
-               (try! (as-contract (contract-call? .name-pre-faktory toggle-bonded))) 
+               (try! (as-contract (contract-call? PRE-CONTRACT toggle-bonded))) 
                 (print {type: "buy", ft: (contract-of ft), tokens-out: tokens-out, ustx: ubtc, premium-amount: premium-amount, amm-amount: amm-amount,
                         amm-ustx: amm-ustx,
                         stx-balance: u0, ft-balance: u0,
@@ -156,8 +157,8 @@
           (try! (as-contract (contract-call? .sbtc-token 
                               transfer (- fee pre-fee) tx-sender FEE-RECEIVER none))) 
           (try! (contract-call? .sbtc-token 
-                              transfer pre-fee tx-sender .name-pre-faktory none))
-          (try! (as-contract (contract-call? .name-pre-faktory create-fees-receipt pre-fee))) ;; this address could be a multi-sig        
+                              transfer pre-fee tx-sender PRE-CONTRACT none))
+          (try! (as-contract (contract-call? PRE-CONTRACT create-fees-receipt pre-fee))) ;; this address could be a multi-sig        
           (var-set stx-balance new-stx)
           (var-set ft-balance new-ft)
           (print {type: "sell", ft: (contract-of ft), amount: amount, stx-to-receiver: stx-to-receiver, maker: tx-sender,
@@ -194,7 +195,7 @@
       (ok (var-get open)))
     
     (define-public (open-market) 
-      (let ((is-prelaunch-allowing (unwrap-panic (contract-call? .name-pre-faktory is-market-open))))
+      (let ((is-prelaunch-allowing (unwrap-panic (contract-call? PRE-CONTRACT is-market-open))))
         (asserts! is-prelaunch-allowing ERR-MARKET-CLOSED)
         (var-set open true)
         (ok true))
