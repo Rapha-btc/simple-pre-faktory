@@ -481,3 +481,84 @@ describe("on deployment", () => {
     `);
   });
 });
+
+describe("get-balance", () => {
+  it("returns the balance of the given account", () => {
+    getToken(address1, 100_000);
+    const { result } = simnet.callReadOnlyFn(
+      "name-faktory",
+      "get-balance",
+      [principalCV(address1)],
+      address1
+    );
+    expect(result).toEqual(responseOkCV(uintCV(1_785_063_752_276_868)));
+  });
+});
+
+describe("get-name", () => {
+  it("returns the token name", () => {
+    const { result } = simnet.callReadOnlyFn(
+      "name-faktory",
+      "get-name",
+      [],
+      address1
+    );
+    expect(result).toEqual(responseOkCV(stringAsciiCV("ai sbtc")));
+  });
+});
+
+describe("get-symbol", () => {
+  it("returns the token symbol", () => {
+    const { result } = simnet.callReadOnlyFn(
+      "name-faktory",
+      "get-symbol",
+      [],
+      address1
+    );
+    expect(result).toEqual(responseOkCV(stringAsciiCV("NAME")));
+  });
+});
+
+describe("get-decimals", () => {
+  it("return the token number of decimals", () => {
+    const { result } = simnet.callReadOnlyFn(
+      "name-faktory",
+      "get-decimals",
+      [],
+      address1
+    );
+    expect(result).toEqual(responseOkCV(uintCV(8)));
+  });
+});
+
+describe("get-supply", () => {
+  it("returns the token supply", () => {
+    const { result } = simnet.callReadOnlyFn(
+      "name-faktory",
+      "get-total-supply",
+      [],
+      address1
+    );
+    expect(result).toEqual(responseOkCV(uintCV(BigInt("100000000000000000"))));
+  });
+});
+
+describe("get-token-uri", () => {
+  it("returns the token URI", () => {
+    const { result } = simnet.callReadOnlyFn(
+      "name-faktory",
+      "get-token-uri",
+      [],
+      address1
+    );
+    expect(result).toEqual(
+      responseOkCV(
+        someCV(
+          stringUtf8CV(
+            "https://bncytzyfafclmdxrwpgq.supabase.co/storage/v1/object/public/tokens/60360b67-5f2e-4dfb-adc4-f8bf7c9aab85.json"
+          )
+        )
+      )
+    );
+  });
+});
