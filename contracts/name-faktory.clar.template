@@ -1,0 +1,138 @@
+(impl-trait 'SP2XD7417HGPRTREMKF748VNEQPDRR0RMANB7X1NK.trait-sip-010.sip-010-trait)
+
+(define-constant ERR-NOT-AUTHORIZED (err u1000))
+
+(define-fungible-token %SYMBOL% MAX)
+(define-constant MAX u%SUPPLY%)
+(define-data-var token-name (string-ascii 32) "%NAME%")
+(define-data-var token-symbol (string-ascii 10) "%SYMBOL%")
+(define-data-var token-uri (optional (string-utf8 256)) (some u"%URI%"))
+
+(define-data-var token-decimals uint u8)
+
+;; --- Authorisation check
+
+(define-read-only (is-dao-or-extension)
+	(ok (asserts! (or (is-eq tx-sender 'SP2XD7417HGPRTREMKF748VNEQPDRR0RMANB7X1NK.executor-dao) (contract-call? 'SP2XD7417HGPRTREMKF748VNEQPDRR0RMANB7X1NK.executor-dao is-extension contract-caller)) ERR-NOT-AUTHORIZED)))
+
+;; Other
+
+(define-public (set-name (new-name (string-ascii 32)))
+	(begin
+		(try! (is-dao-or-extension))
+        (var-set token-name new-name)
+        (ok (print {
+              notification: "token-metadata-update",
+              payload: { contract-id: (as-contract tx-sender), token-class: "ft" } }))))        
+
+(define-public (set-symbol (new-symbol (string-ascii 10)))
+	(begin
+		(try! (is-dao-or-extension))
+		(var-set token-symbol new-symbol)
+        (ok (print {
+              notification: "token-metadata-update",
+              payload: { contract-id: (as-contract tx-sender), token-class: "ft" } }))))        
+
+(define-public (set-decimals (new-decimals uint))
+	(begin
+		(try! (is-dao-or-extension))
+		(var-set token-decimals new-decimals)
+        (ok (print {
+              notification: "token-metadata-update",
+              payload: { contract-id: (as-contract tx-sender), token-class: "ft" } }))))        
+
+(define-public (set-token-uri (new-uri (optional (string-utf8 256))))
+	(begin
+		(try! (is-dao-or-extension))
+		(var-set token-uri new-uri)
+        (ok (print {
+              notification: "token-metadata-update",
+              payload: { contract-id: (as-contract tx-sender), token-class: "ft" } }))))        
+
+;; --- Public functions
+
+;; sip010-ft-trait
+
+(define-public (transfer (amount uint) (sender principal) (recipient principal) (memo (optional (buff 34))))
+	(begin
+		(asserts! (is-eq sender tx-sender) ERR-NOT-AUTHORIZED)
+		(try! (ft-transfer? %SYMBOL% amount sender recipient))
+		(match memo to-print (print to-print) 0x)
+		(ok true)))
+
+(define-read-only (get-name)
+	(ok (var-get token-name)))
+
+(define-read-only (get-symbol)
+	(ok (var-get token-symbol)))
+
+(define-read-only (get-decimals)
+	(ok (var-get token-decimals)))
+
+(define-read-only (get-balance (who principal))
+	(ok (ft-get-balance %SYMBOL% who)))
+
+(define-read-only (get-total-supply)
+	(ok (ft-get-supply %SYMBOL%)))
+
+(define-read-only (get-token-uri)
+	(ok (var-get token-uri)))
+
+;; --- Protocol functions
+
+(define-constant ONE_8 u100000000)
+
+(define-public (mint (amount uint) (recipient principal))
+	(begin
+		(try! (is-dao-or-extension))
+		(ft-mint? %SYMBOL% amount recipient)))
+
+(define-public (burn (amount uint) (sender principal))
+	(begin
+		(try! (is-dao-or-extension))
+		(ft-burn? %SYMBOL% amount sender)))
+
+(define-public (send-many (recipients (list 200 { to: principal, amount: uint, memo: (optional (buff 34)) })))
+    (fold check-err (map send-token recipients) (ok true)))
+
+(define-private (check-err (result (response bool uint)) (prior (response bool uint)))
+    (match prior ok-value result err-value (err err-value)))
+
+(define-private (send-token (recipient { to: principal, amount: uint, memo: (optional (buff 34)) }))
+    (send-token-with-memo (get amount recipient) (get to recipient) (get memo recipient)))
+
+(define-private (send-token-with-memo (amount uint) (to principal) (memo (optional (buff 34))))
+    (let ((transferOk (try! (transfer amount tx-sender to memo))))
+        (ok transferOk)))
+
+(define-private (pow-decimals)
+	(pow u10 (unwrap-panic (get-decimals))))
+
+(define-read-only (fixed-to-decimals (amount uint))
+	(/ (* amount (pow-decimals)) ONE_8))
+
+(define-private (decimals-to-fixed (amount uint))
+	(/ (* amount ONE_8) (pow-decimals)))
+
+(define-read-only (get-total-supply-fixed)
+	(ok (decimals-to-fixed (unwrap-panic (get-total-supply)))))
+
+(define-read-only (get-balance-fixed (account principal))
+	(ok (decimals-to-fixed (unwrap-panic (get-balance account)))))
+
+(define-public (transfer-fixed (amount uint) (sender principal) (recipient principal) (memo (optional (buff 34))))
+	(transfer (fixed-to-decimals amount) sender recipient memo))
+
+(define-public (mint-fixed (amount uint) (recipient principal))
+	(mint (fixed-to-decimals amount) recipient))
+
+(define-public (burn-fixed (amount uint) (sender principal))
+	(burn (fixed-to-decimals amount) sender))
+
+(define-private (burn-fixed-many-iter (item {amount: uint, sender: principal}))
+	(burn-fixed (get amount item) (get sender item)))
+
+(define-public (burn-fixed-many (senders (list 200 {amount: uint, sender: principal})))
+	(begin
+		(try! (is-dao-or-extension))
+		(ok (map burn-fixed-many-iter senders))))
