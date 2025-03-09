@@ -1,6 +1,3 @@
-;; 3ffc48440d8dc2bd86b328355351467275607b40f6b74499d90cbbb13a4618f7
-;; NAME Powered By Faktory.fun v1.0 
-
 (impl-trait .faktory-trait-v1.sip-010-trait)  ;; 'STTWD9SPRQVD3P733V89SV0P8RZRZNQADG034F0A
 (impl-trait .aibtc-dao-traits-v2.token)      ;; 'ST3YT0XW92E6T2FE59B2G5N2WNNFSBZ6MZKQS5D18
 
@@ -9,7 +6,7 @@
 (define-constant ERR-NOT-OWNER u402)
 
 ;; Token definition
-(define-fungible-token NAME MAX)
+(define-fungible-token STUB MAX)
 (define-constant MAX u100000000000000000)
 
 ;; Contract variables
@@ -21,7 +18,7 @@
 (define-public (transfer (amount uint) (sender principal) (recipient principal) (memo (optional (buff 34))))
     (begin
         (asserts! (is-eq tx-sender sender) (err ERR-NOT-AUTHORIZED))
-        (match (ft-transfer? NAME amount sender recipient)
+        (match (ft-transfer? STUB amount sender recipient)
             response (begin
                 (print memo)
                 (ok response))
@@ -45,7 +42,7 @@
 )
 
 (define-read-only (get-balance (account principal))
-    (ok (ft-get-balance NAME account))
+    (ok (ft-get-balance STUB account))
 )
 
 (define-read-only (get-name)
@@ -53,7 +50,7 @@
 )
 
 (define-read-only (get-symbol)
-    (ok "NAME")
+    (ok "STUB")
 )
 
 (define-read-only (get-decimals)
@@ -61,7 +58,7 @@
 )
 
 (define-read-only (get-total-supply)
-    (ok (ft-get-supply NAME))
+    (ok (ft-get-supply STUB))
 )
 
 (define-read-only (get-token-uri)
@@ -103,14 +100,14 @@
 ;; ---------------------------------------------------------
 (begin 
     ;; ft distribution
-    (try! (ft-mint? NAME (/ (* MAX u80) u100) .name-treasury))     ;; 80% treasury
-    (try! (ft-mint? NAME (/ (* MAX u16) u100) .name-faktory-dex))  ;; 16% dex ;; Rafa put back on !not 20%
-    (try! (ft-mint? NAME (/ (* MAX u4) u100) .name-pre-faktory))   ;; 4% faktory ;; Rafa put back on
+    (try! (ft-mint? STUB (/ (* MAX u80) u100) .name-treasury))     ;; 80% treasury
+    (try! (ft-mint? STUB (/ (* MAX u16) u100) .name-faktory-dex))  ;; 16% dex ;; Rafa put back on !not 20%
+    (try! (ft-mint? STUB (/ (* MAX u4) u100) .name-pre-faktory))   ;; 4% faktory ;; Rafa put back on
     
     (print { 
         type: "faktory-trait-v1", 
         name: "ai sbtc",
-        symbol: "NAME",
+        symbol: "STUB",
         token-uri: u"https://bncytzyfafclmdxrwpgq.supabase.co/storage/v1/object/public/tokens/60360b67-5f2e-4dfb-adc4-f8bf7c9aab85.json", 
         tokenContract: (as-contract tx-sender),
         supply: MAX, 
