@@ -32,6 +32,7 @@
     (define-data-var ft-balance uint u0)
     (define-data-var stx-balance uint u0)
     (define-data-var premium uint u25)
+    (define-constant DEX-AMOUNT u250000)
     
     (define-public (buy (ft <faktory-token>) (ubtc uint))
       (begin
@@ -98,7 +99,7 @@
                           stx-balance: new-stx, ft-balance: new-ft,
                           fee: fee,
                           open: true})
-              (ok true))))))
+              (ok true)))))) 
     
     (define-read-only (get-in (ubtc uint))
       (let ((total-stx (var-get stx-balance))
@@ -189,6 +190,7 @@
     (define-public (open-market) 
       (let ((is-prelaunch-allowing (unwrap-panic (contract-call? .name-pre-faktory is-market-open))))
         (asserts! is-prelaunch-allowing ERR-MARKET-CLOSED)
+        (var-set stx-balance DEX-AMOUNT)
         (var-set open true)
         (ok true))
     )
@@ -196,9 +198,7 @@
     ;; boot dex
       (begin
         (var-set fak-ustx FAK_STX)
-        (var-set ft-balance u20000000000000000)
-        (var-set stx-balance u0)
-        (var-set open true)
+        (var-set ft-balance u16000000000000000)
           (print { 
               type: "faktory-dex-trait-v1-1", 
               dexContract: (as-contract tx-sender),
