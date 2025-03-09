@@ -29,16 +29,16 @@
 
 ;; Data variables
 (define-data-var open bool false)
-(define-data-var fak-ustx uint u0)
+(define-data-var fak-ustx uint u0) ;; Rename to fak-usbtc || fak-sats
 (define-data-var ft-balance uint u0)
-(define-data-var stx-balance uint u0)
+(define-data-var stx-balance uint u0) ;; Rename to usbtc-balance || sats-balance
 (define-data-var premium uint u25)
 
 (define-public (buy (ft <faktory-token>) (ubtc uint))
   (begin
     (asserts! (is-eq DEX-TOKEN (contract-of ft)) ERR-TOKEN-NOT-AUTH)
     (asserts! (var-get open) ERR-MARKET-CLOSED)
-    (asserts! (> ubtc u0) ERR-STX-NON-POSITIVE)
+    (asserts! (> ubtc u0) ERR-STX-NON-POSITIVE) ;; This can be removed. It is impossible for an usigned int (uint) to be negative
     (let (
           (in-info (unwrap! (get-in ubtc) ERR-FETCHING-BUY-INFO))
           (total-stx (get total-stx in-info))
@@ -54,10 +54,10 @@
           (new-stx (get new-stx in-info))
           (ft-receiver tx-sender)
           )
+      (try! (contract-call? .sbtc-token transfer stx-in tx-sender (as-contract tx-sender) none))
       (try! (contract-call? .sbtc-token transfer (- fee pre-fee) tx-sender FEE-RECEIVER none)) 
       (try! (contract-call? .sbtc-token transfer pre-fee tx-sender .name-pre-faktory none))
       (try! (as-contract (contract-call? .name-pre-faktory create-fees-receipt pre-fee)))        
-      (try! (contract-call? .sbtc-token transfer stx-in tx-sender (as-contract tx-sender) none))
       (try! (as-contract (contract-call? ft transfer tokens-out tx-sender ft-receiver none)))
       (if (>= new-stx TARGET_STX)
           (let ((premium-amount (/ (* new-ft (var-get premium)) u100))
@@ -70,10 +70,10 @@
             (try! (as-contract (contract-call? ft transfer agent-amount tx-sender FAKTORY none)))
             (try! (as-contract (contract-call? ft transfer originator-amount tx-sender ORIGINATOR none)))
             (try! (as-contract (contract-call? .sbtc-token transfer GRAD-FEE tx-sender G-RECEIVER none)))
+            (try! (as-contract (contract-call? .name-pre-faktory toggle-bonded)))
             (var-set open false)
             (var-set stx-balance u0)
             (var-set ft-balance u0)
-            (try! (as-contract (contract-call? .name-pre-faktory toggle-bonded)))
             (print {
               type: "buy", 
               ft: (contract-of ft), 
