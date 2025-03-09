@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { describe, expect, it } from "vitest";
-import { deployer, getToken } from "./helpers";
+import { deployer, buyToken } from "./helpers";
 import {
   bufferCVFromString,
   contractPrincipalCV,
@@ -26,7 +26,7 @@ const address4 = accounts.get("wallet_4")!;
 
 describe("transfer", () => {
   it("ensures the tx-sender and the token sender are the same", () => {
-    getToken(address1, 100_000);
+    buyToken(address1, 100_000);
 
     const { result: errorResult } = simnet.callPublicFn(
       "name-faktory",
@@ -46,7 +46,7 @@ describe("transfer", () => {
   });
 
   it("transfers the given amount to the recipient", () => {
-    getToken(address1, 100_000);
+    buyToken(address1, 100_000);
 
     const { result, events } = simnet.callPublicFn(
       "name-faktory",
@@ -217,7 +217,7 @@ describe("set-contract-owner", () => {
 
 describe("send-many", () => {
   it("allows sending tokens to many recipients", () => {
-    getToken(address1, 100_000);
+    buyToken(address1, 100_000);
     const { result, events } = simnet.callPublicFn(
       "name-faktory",
       "send-many",
@@ -319,7 +319,7 @@ describe("send-many", () => {
   });
 
   it("fails if there is an error while processing the transfers", () => {
-    getToken(address1, 100_000); // 1_785_063_752_276_868 in name-faktory tokens
+    buyToken(address1, 100_000); // 1_785_063_752_276_868 in name-faktory tokens
     const { result, events } = simnet.callPublicFn(
       "name-faktory",
       "send-many",
@@ -484,14 +484,14 @@ describe("on deployment", () => {
 
 describe("get-balance", () => {
   it("returns the balance of the given account", () => {
-    getToken(address1, 100_000);
+    buyToken(address1, 100_000);
     const { result } = simnet.callReadOnlyFn(
       "name-faktory",
       "get-balance",
       [principalCV(address1)],
       address1
     );
-    expect(result).toEqual(responseOkCV(uintCV(1_785_063_752_276_868)));
+    expect(result).toEqual(responseOkCV(uintCV(1_428_051_001_821_494)));
   });
 });
 
