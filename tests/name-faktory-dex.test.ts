@@ -3,6 +3,7 @@ import {
   deployer,
   deployStubToken,
   getSbtc,
+  openMarket,
   stubTokenContract,
   token,
 } from "./helpers";
@@ -52,7 +53,7 @@ describe("buy", () => {
   };
 
   beforeEach(() => {
-    getSbtc(address1);
+    openMarket();
   });
 
   it("only allows buying from the designated token", () => {
@@ -513,6 +514,7 @@ describe("buy", () => {
 
 describe("sell", () => {
   beforeEach(() => {
+    openMarket();
     getSbtc(address1);
     simnet.callPublicFn(
       "name-faktory-dex",
@@ -973,23 +975,23 @@ describe("get-out", () => {
             },
             "ft-balance": {
               "type": "uint",
-              "value": "8080808080808080",
+              "value": "16000000000000000",
             },
             "k": {
               "type": "uint",
-              "value": "15999999999999998400000",
+              "value": "16000000000000000000000",
             },
             "new-ft": {
               "type": "uint",
-              "value": "8080808130808080",
+              "value": "16000000050000000",
             },
             "new-stk": {
               "type": "uint",
-              "value": "1979999",
+              "value": "999999",
             },
             "new-stx": {
               "type": "uint",
-              "value": "980000",
+              "value": "0",
             },
             "stx-out": {
               "type": "uint",
@@ -1001,11 +1003,11 @@ describe("get-out", () => {
             },
             "total-stk": {
               "type": "uint",
-              "value": "1980000",
+              "value": "1000000",
             },
             "total-stx": {
               "type": "uint",
-              "value": "980000",
+              "value": "0",
             },
           },
         },
@@ -1033,23 +1035,23 @@ describe("get-out", () => {
             },
             "ft-balance": {
               "type": "uint",
-              "value": "8080808080808080",
+              "value": "16000000000000000",
             },
             "k": {
               "type": "uint",
-              "value": "15999999999999998400000",
+              "value": "16000000000000000000000",
             },
             "new-ft": {
               "type": "uint",
-              "value": "8080808180808080",
+              "value": "16000000100000000",
             },
             "new-stk": {
               "type": "uint",
-              "value": "1979999",
+              "value": "999999",
             },
             "new-stx": {
               "type": "uint",
-              "value": "980000",
+              "value": "0",
             },
             "stx-out": {
               "type": "uint",
@@ -1061,11 +1063,11 @@ describe("get-out", () => {
             },
             "total-stk": {
               "type": "uint",
-              "value": "1980000",
+              "value": "1000000",
             },
             "total-stx": {
               "type": "uint",
-              "value": "980000",
+              "value": "0",
             },
           },
         },
@@ -1093,23 +1095,23 @@ describe("get-out", () => {
             },
             "ft-balance": {
               "type": "uint",
-              "value": "8080808080808080",
+              "value": "16000000000000000",
             },
             "k": {
               "type": "uint",
-              "value": "15999999999999998400000",
+              "value": "16000000000000000000000",
             },
             "new-ft": {
               "type": "uint",
-              "value": "8080808280808080",
+              "value": "16000000200000000",
             },
             "new-stk": {
               "type": "uint",
-              "value": "1979999",
+              "value": "999999",
             },
             "new-stx": {
               "type": "uint",
-              "value": "980000",
+              "value": "0",
             },
             "stx-out": {
               "type": "uint",
@@ -1121,11 +1123,11 @@ describe("get-out", () => {
             },
             "total-stk": {
               "type": "uint",
-              "value": "1980000",
+              "value": "1000000",
             },
             "total-stx": {
               "type": "uint",
-              "value": "980000",
+              "value": "0",
             },
           },
         },

@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
-import { describe, expect, it } from "vitest";
-import { deployer, buyToken } from "./helpers";
+import { beforeEach, describe, expect, it } from "vitest";
+import { deployer, buyToken, buyAllPreSaleSeats, openMarket } from "./helpers";
 import {
   bufferCVFromString,
   contractPrincipalCV,
@@ -25,6 +25,10 @@ const address3 = accounts.get("wallet_3")!;
 const address4 = accounts.get("wallet_4")!;
 
 describe("transfer", () => {
+  beforeEach(() => {
+    openMarket();
+  });
+
   it("ensures the tx-sender and the token sender are the same", () => {
     buyToken(address1, 100_000);
 
@@ -216,6 +220,10 @@ describe("set-contract-owner", () => {
 });
 
 describe("send-many", () => {
+  beforeEach(() => {
+    openMarket();
+  });
+
   it("allows sending tokens to many recipients", () => {
     buyToken(address1, 100_000);
     const { result, events } = simnet.callPublicFn(
@@ -484,6 +492,7 @@ describe("on deployment", () => {
 
 describe("get-balance", () => {
   it("returns the balance of the given account", () => {
+    openMarket();
     buyToken(address1, 100_000);
     const { result } = simnet.callReadOnlyFn(
       "name-faktory",

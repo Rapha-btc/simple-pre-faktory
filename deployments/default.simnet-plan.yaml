@@ -16,6 +16,10 @@ genesis:
       address: ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5
       balance: "100000000000000"
       sbtc-balance: "1000000000"
+    - name: wallet_10
+      address: ST38KBGBJ34TPJCHB03TRN1X1DGASTSGGQPZD74WZ
+      balance: "100000000000000"
+      sbtc-balance: "1000000000"
     - name: wallet_2
       address: ST2CY5V39NHDPWSXMW9QDT3HC3GD6Q6XX4CFRK9AG
       balance: "100000000000000"
@@ -42,6 +46,10 @@ genesis:
       sbtc-balance: "1000000000"
     - name: wallet_8
       address: ST3NBRSFKX28FQ2ZJ1MAKX58HKHSDGNV5N7R21XCP
+      balance: "100000000000000"
+      sbtc-balance: "1000000000"
+    - name: wallet_9
+      address: ST2ZB99W3GWYV4F3JRG81MXEVW9CYDBHWXPW1ETG
       balance: "100000000000000"
       sbtc-balance: "1000000000"
   contracts:
