@@ -468,10 +468,6 @@
                     error false)  
             false)))
 
-;; Helper to extract principal from seat-holder entry
-(define-private (get-holder-principal (entry {owner: principal, seats: uint}))
-    (get owner entry))
-
 ;; Get all unique seat holders
 (define-read-only (get-all-seat-holders)
     (ok (var-get seat-holders)))
