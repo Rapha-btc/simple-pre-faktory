@@ -1,3 +1,4 @@
+import { ParsedTransactionResult } from "@hirosystems/clarinet-sdk";
 import {
   contractPrincipalCV,
   cvToJSON,
@@ -58,11 +59,19 @@ export const deployStubToken = () => {
   simnet.deployContract(stubTokenContractName, stubContract, null, deployer);
 };
 
-export const buySeat = (account: string, seat: number) => {
-  simnet.callPublicFn("name-pre-faktory", "buy-up-to", [uintCV(seat)], account);
+export const buySeat = (
+  account: string,
+  seat: number
+): ParsedTransactionResult => {
+  return simnet.callPublicFn(
+    "name-pre-faktory",
+    "buy-up-to",
+    [uintCV(seat)],
+    account
+  );
 };
 
-export const buyAllPreSaleSeats = () => {
+export const buyAllPreSaleSeats = (): ParsedTransactionResult[] => {
   const owners = [
     address1,
     address2,
@@ -76,7 +85,7 @@ export const buyAllPreSaleSeats = () => {
     address10,
   ];
   owners.forEach(getSbtc);
-  owners.forEach((owner) => buySeat(owner, 2));
+  return owners.map((owner) => buySeat(owner, 2));
 };
 
 export const openMarket = () => {
