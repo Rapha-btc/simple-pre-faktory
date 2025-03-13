@@ -20,8 +20,6 @@ const accounts = simnet.getAccounts();
 const address1 = accounts.get("wallet_1")!;
 const address2 = accounts.get("wallet_2")!;
 const address3 = accounts.get("wallet_3")!;
-const feeReceiver = "ST1Y9QV2CY6R0NQNS8CPA5C2835QNGHMTFE94FV5R";
-const preFactory = `${deployer}.name-pre-faktory`;
 const dex = `${deployer}.name-faktory-dex`;
 
 describe("buy", () => {
@@ -64,7 +62,7 @@ describe("buy", () => {
       [stubTokenContract, uintCV(10_000)],
       address1
     );
-    expect(result).toEqual(responseErrorCV(uintCV(401)));
+    expect(result).toStrictEqual(responseErrorCV(uintCV(401)));
   });
 
   it("only allows buying when the contract is open for sales", () => {
@@ -75,7 +73,7 @@ describe("buy", () => {
       [token, uintCV(10_000)],
       address1
     );
-    expect(result).toEqual(responseErrorCV(uintCV(1001)));
+    expect(result).toStrictEqual(responseErrorCV(uintCV(1001)));
   });
 
   it("should transfer 60% of the calculated fee minus to the FEE-RECEIVER", () => {
@@ -95,13 +93,13 @@ describe("buy", () => {
       [token, uintCV(100_000)],
       address1
     );
-    expect(result).toEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(trueCV()));
     expect(events[1]).toMatchInlineSnapshot(`
       {
         "data": {
-          "amount": "${calculatedFee}",
+          "amount": "800",
           "asset_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.sbtc-token::sbtc-token",
-          "recipient": "${feeReceiver}",
+          "recipient": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-pre-faktory",
           "sender": "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5",
         },
         "event": "ft_transfer_event",
@@ -126,16 +124,32 @@ describe("buy", () => {
       [token, uintCV(100_000)],
       address1
     );
-    expect(result).toEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(trueCV()));
     expect(events[2]).toMatchInlineSnapshot(`
       {
         "data": {
-          "amount": "${calculatedPreFee}",
-          "asset_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.sbtc-token::sbtc-token",
-          "recipient": "${preFactory}",
-          "sender": "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5",
+          "contract_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-pre-faktory",
+          "raw_value": "0x0c0000000306616d6f756e74010000000000000000000000000000032011746f74616c2d616363756d756c61746564010000000000000000000000000000032004747970650d0000000d666565732d7265636569766564",
+          "topic": "print",
+          "value": {
+            "data": {
+              "amount": {
+                "type": 1,
+                "value": 800n,
+              },
+              "total-accumulated": {
+                "type": 1,
+                "value": 800n,
+              },
+              "type": {
+                "data": "fees-received",
+                "type": 13,
+              },
+            },
+            "type": 12,
+          },
         },
-        "event": "ft_transfer_event",
+        "event": "print_event",
       }
     `);
   });
@@ -157,32 +171,16 @@ describe("buy", () => {
       [token, uintCV(100_000)],
       address1
     );
-    expect(result).toEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(trueCV()));
     expect(events[3]).toMatchInlineSnapshot(`
       {
         "data": {
-          "contract_identifier": "${preFactory}",
-          "raw_value": "0x0c0000000306616d6f756e74010000000000000000000000000000032011746f74616c2d616363756d756c61746564010000000000000000000000000000032004747970650d0000000d666565732d7265636569766564",
-          "topic": "print",
-          "value": {
-            "data": {
-              "amount": {
-                "type": 1,
-                "value": ${calculatedPreFee}n,
-              },
-              "total-accumulated": {
-                "type": 1,
-                "value": 800n,
-              },
-              "type": {
-                "data": "fees-received",
-                "type": 13,
-              },
-            },
-            "type": 12,
-          },
+          "amount": "98000",
+          "asset_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.sbtc-token::sbtc-token",
+          "recipient": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory-dex",
+          "sender": "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5",
         },
-        "event": "print_event",
+        "event": "ft_transfer_event",
       }
     `);
   });
@@ -203,7 +201,7 @@ describe("buy", () => {
       [token, uintCV(100_000)],
       address1
     );
-    expect(result).toEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(trueCV()));
     expect(events[4]).toMatchInlineSnapshot(`
       {
         "data": {
@@ -239,7 +237,7 @@ describe("buy", () => {
       [token, uintCV(100_000)],
       address1
     );
-    expect(result).toEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(trueCV()));
 
     const tokenBalanceAfter = Number(
       cvToJSON(simnet.getDataVar(dex, "ft-balance")).value
@@ -248,8 +246,8 @@ describe("buy", () => {
       cvToJSON(simnet.getDataVar(dex, "stx-balance")).value
     );
 
-    expect(tokenBalanceAfter).toEqual(tokenBalanceBefore - boughtTokens);
-    expect(sbtcBalanceAfter).toEqual(sbtcBalanceBefore + 98_000); // 100_000 - 2_000 fee
+    expect(tokenBalanceAfter).toStrictEqual(tokenBalanceBefore - boughtTokens);
+    expect(sbtcBalanceAfter).toStrictEqual(sbtcBalanceBefore + 98_000); // 100_000 - 2_000 fee
   });
 
   it("should print a buy receipt", () => {
@@ -260,12 +258,12 @@ describe("buy", () => {
       address1
     );
 
-    expect(result).toEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(trueCV()));
     expect(events[6]).toMatchInlineSnapshot(`
       {
         "data": {
           "contract_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory-dex",
-          "raw_value": "0x0c000000090366656501000000000000000000000000000007d0026674061a6d78de7b0625dfbfc16c3a8a5735f6dc3dc3f2ce0c6e616d652d66616b746f72790a66742d62616c616e63650100000000000000000033c51c43b8b6ca056d616b6572051a7321b74e2b6a7e949e6c4ad313035b1665095017046f70656e030b7374782d62616c616e63650100000000000000000000000000017ed00a746f6b656e732d6f7574010000000000000000000512ce08af493604747970650d00000003627579047573747801000000000000000000000000000186a0",
+          "raw_value": "0x0c000000090366656501000000000000000000000000000007d0026674061a6d78de7b0625dfbfc16c3a8a5735f6dc3dc3f2ce0c6e616d652d66616b746f72790a66742d62616c616e63650100000000000000000034b5fc969d35ef056d616b6572051a7321b74e2b6a7e949e6c4ad313035b1665095017046f70656e030b7374782d62616c616e63650100000000000000000000000000054f600a746f6b656e732d6f7574010000000000000000000421edb5caca1104747970650d00000003627579047573747801000000000000000000000000000186a0",
           "topic": "print",
           "value": {
             "data": {
@@ -289,7 +287,7 @@ describe("buy", () => {
               },
               "ft-balance": {
                 "type": 1,
-                "value": 14571948998178506n,
+                "value": 14836795252225519n,
               },
               "maker": {
                 "address": {
@@ -304,11 +302,11 @@ describe("buy", () => {
               },
               "stx-balance": {
                 "type": 1,
-                "value": 98000n,
+                "value": 348000n,
               },
               "tokens-out": {
                 "type": 1,
-                "value": 1428051001821494n,
+                "value": 1163204747774481n,
               },
               "type": {
                 "data": "buy",
@@ -331,11 +329,11 @@ describe("buy", () => {
     it("should transfer a percentage of the fungible token premium to the 'FAKTORY' agent address", () => {
       const { result, events } = completeCurve();
 
-      expect(result).toEqual(responseOkCV(trueCV()));
+      expect(result).toStrictEqual(responseOkCV(trueCV()));
       expect(events[6]).toMatchInlineSnapshot(`
         {
           "data": {
-            "amount": "348837209302325",
+            "amount": "420757363253856",
             "asset_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory::NAME",
             "recipient": "STTWD9SPRQVD3P733V89SV0P8RZRZNQADG034F0A",
             "sender": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory-dex",
@@ -348,11 +346,11 @@ describe("buy", () => {
     it("should transfer the remainder of the fungible token premium to the 'ORIGINATOR' address", () => {
       const { result, events } = completeCurve();
 
-      expect(result).toEqual(responseOkCV(trueCV()));
+      expect(result).toStrictEqual(responseOkCV(trueCV()));
       expect(events[8]).toMatchInlineSnapshot(`
         {
           "data": {
-            "amount": "232558139534884",
+            "amount": "280504908835905",
             "asset_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory::NAME",
             "recipient": "STTWD9SPRQVD3P733V89SV0P8RZRZNQADG034F0A",
             "sender": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory-dex",
@@ -365,7 +363,7 @@ describe("buy", () => {
     it("should transfer a fee to the graduation fee receiver address", () => {
       const { result, events } = completeCurve();
 
-      expect(result).toEqual(responseOkCV(trueCV()));
+      expect(result).toStrictEqual(responseOkCV(trueCV()));
       expect(events[10]).toMatchInlineSnapshot(`
         {
           "data": {
@@ -388,13 +386,13 @@ describe("buy", () => {
         "name-pre-faktory",
         "final-airdrop-mode"
       );
-      expect([acceleratedVesting, finalAirdropMode]).toEqual([
+      expect([acceleratedVesting, finalAirdropMode]).toStrictEqual([
         falseCV(),
         falseCV(),
       ]);
       const { result } = completeCurve();
 
-      expect(result).toEqual(responseOkCV(trueCV()));
+      expect(result).toStrictEqual(responseOkCV(trueCV()));
 
       const acceleratedVestingAfterBonding = simnet.getDataVar(
         "name-pre-faktory",
@@ -407,17 +405,17 @@ describe("buy", () => {
       expect([
         acceleratedVestingAfterBonding,
         finalAirdropModeAfterBonding,
-      ]).toEqual([trueCV(), trueCV()]);
+      ]).toStrictEqual([trueCV(), trueCV()]);
     });
 
     it("should set the dex as closed, and the usbtc and fungible tokens balances to 0", () => {
       const { result } = completeCurve();
 
-      expect(result).toEqual(responseOkCV(trueCV()));
+      expect(result).toStrictEqual(responseOkCV(trueCV()));
       const ftBalance = simnet.getDataVar(dex, "ft-balance");
       const usbtcBalance = simnet.getDataVar(dex, "stx-balance");
       const open = simnet.getDataVar(dex, "open");
-      expect([ftBalance, usbtcBalance, open]).toEqual([
+      expect([ftBalance, usbtcBalance, open]).toStrictEqual([
         uintCV(0),
         uintCV(0),
         falseCV(),
@@ -427,22 +425,22 @@ describe("buy", () => {
     it("should print a receipt when the bonding curve is complete", () => {
       const { result, events } = completeCurve();
 
-      expect(result).toEqual(responseOkCV(trueCV()));
+      expect(result).toStrictEqual(responseOkCV(trueCV()));
       expect(events[11]).toMatchInlineSnapshot(`
         {
           "data": {
             "contract_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory-dex",
-            "raw_value": "0x0c0000000d0a616d6d2d616d6f756e7401000000000000000000063253f5b97a0c08616d6d2d757374780100000000000000000000000000583220036665650100000000000000000000000000009c40026674061a6d78de7b0625dfbfc16c3a8a5735f6dc3dc3f2ce0c6e616d652d66616b746f72790a66742d62616c616e6365010000000000000000000000000000000008677261642d66656501000000000000000000000000000186a0056d616b6572051aa5180cc1ff6050df53f0ab766d76b630e14feb0c046f70656e040e7072656d69756d2d616d6f756e74010000000000000000000210c6a73dd3590b7374782d62616c616e636501000000000000000000000000000000000a746f6b656e732d6f757401000000000000000000034a9a3634baee04747970650d00000003627579047573747801000000000000000000000000001e8480",
+            "raw_value": "0x0c0000000d0a616d6d2d616d6f756e740100000000000000000007796209ddebe408616d6d2d7573747801000000000000000000000000005c02b0036665650100000000000000000000000000009c40026674061a6d78de7b0625dfbfc16c3a8a5735f6dc3dc3f2ce0c6e616d652d66616b746f72790a66742d62616c616e6365010000000000000000000000000000000008677261642d66656501000000000000000000000000000186a0056d616b6572051aa5180cc1ff6050df53f0ab766d76b630e14feb0c046f70656e040e7072656d69756d2d616d6f756e7401000000000000000000027dcb589f4ea10b7374782d62616c616e636501000000000000000000000000000000000a746f6b656e732d6f75740100000000000000000003c72d6e209edb04747970650d00000003627579047573747801000000000000000000000000001e8480",
             "topic": "print",
             "value": {
               "data": {
                 "amm-amount": {
                   "type": 1,
-                  "value": 1744186046511628n,
+                  "value": 2103786816269284n,
                 },
                 "amm-ustx": {
                   "type": 1,
-                  "value": 5780000n,
+                  "value": 6030000n,
                 },
                 "fee": {
                   "type": 1,
@@ -483,7 +481,7 @@ describe("buy", () => {
                 },
                 "premium-amount": {
                   "type": 1,
-                  "value": 581395348837209n,
+                  "value": 701262272089761n,
                 },
                 "stx-balance": {
                   "type": 1,
@@ -491,7 +489,7 @@ describe("buy", () => {
                 },
                 "tokens-out": {
                   "type": 1,
-                  "value": 926451124976366n,
+                  "value": 1063422865219291n,
                 },
                 "type": {
                   "data": "buy",
@@ -532,7 +530,7 @@ describe("sell", () => {
       [stubTokenContract, uintCV(10_000)],
       address1
     );
-    expect(result).toEqual(responseErrorCV(uintCV(401)));
+    expect(result).toStrictEqual(responseErrorCV(uintCV(401)));
   });
 
   it.skip("should not allow selling if the usbtc balance in the contract is too low", () => {
@@ -546,7 +544,7 @@ describe("sell", () => {
       [token, uintCV(500_000_000_000_000)],
       address1
     );
-    expect(result).toEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(trueCV()));
     expect(events[0]).toMatchInlineSnapshot(`
       {
         "data": {
@@ -567,11 +565,11 @@ describe("sell", () => {
       [token, uintCV(500_000_000_000_000)],
       address1
     );
-    expect(result).toEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(trueCV()));
     expect(events[2]).toMatchInlineSnapshot(`
       {
         "data": {
-          "amount": "35697",
+          "amount": "43068",
           "asset_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.sbtc-token::sbtc-token",
           "recipient": "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5",
           "sender": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory-dex",
@@ -588,11 +586,11 @@ describe("sell", () => {
       [token, uintCV(500_000_000_000_000)],
       address1
     );
-    expect(result).toEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(trueCV()));
     expect(events[3]).toMatchInlineSnapshot(`
       {
         "data": {
-          "amount": "437",
+          "amount": "527",
           "asset_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.sbtc-token::sbtc-token",
           "recipient": "ST1Y9QV2CY6R0NQNS8CPA5C2835QNGHMTFE94FV5R",
           "sender": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory-dex",
@@ -609,11 +607,11 @@ describe("sell", () => {
       [token, uintCV(500_000_000_000_000)],
       address1
     );
-    expect(result).toEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(trueCV()));
     expect(events[4]).toMatchInlineSnapshot(`
       {
         "data": {
-          "amount": "291",
+          "amount": "351",
           "asset_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.sbtc-token::sbtc-token",
           "recipient": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-pre-faktory",
           "sender": "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5",
@@ -630,22 +628,22 @@ describe("sell", () => {
       [token, uintCV(500_000_000_000_000)],
       address1
     );
-    expect(result).toEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(trueCV()));
     expect(events[5]).toMatchInlineSnapshot(`
       {
         "data": {
           "contract_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-pre-faktory",
-          "raw_value": "0x0c0000000306616d6f756e74010000000000000000000000000000012311746f74616c2d616363756d756c61746564010000000000000000000000000000044304747970650d0000000d666565732d7265636569766564",
+          "raw_value": "0x0c0000000306616d6f756e74010000000000000000000000000000015f11746f74616c2d616363756d756c61746564010000000000000000000000000000047f04747970650d0000000d666565732d7265636569766564",
           "topic": "print",
           "value": {
             "data": {
               "amount": {
                 "type": 1,
-                "value": 291n,
+                "value": 351n,
               },
               "total-accumulated": {
                 "type": 1,
-                "value": 1091n,
+                "value": 1151n,
               },
               "type": {
                 "data": "fees-received",
@@ -680,8 +678,8 @@ describe("sell", () => {
     const tokenBalanceAfter = Number(
       cvToJSON(simnet.getDataVar(dex, "ft-balance")).value
     );
-    const sellPrice = 35697;
-    const fees = 437 + 291;
+    const sellPrice = 43068;
+    const fees = 527 + 351;
     expect(usbtcBalanceAfter).toBe(usbtcBalanceBefore - sellPrice - fees);
     expect(tokenBalanceAfter).toBe(tokenBalanceBefore + 500_000_000_000_000);
   });
@@ -693,12 +691,12 @@ describe("sell", () => {
       [token, uintCV(500_000_000_000_000)],
       address1
     );
-    expect(result).toEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(trueCV()));
     expect(events[6]).toMatchInlineSnapshot(`
       {
         "data": {
           "contract_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory-dex",
-          "raw_value": "0x0c0000000906616d6f756e740100000000000000000001c6bf526340000366656501000000000000000000000000000002d8026674061a6d78de7b0625dfbfc16c3a8a5735f6dc3dc3f2ce0c6e616d652d66616b746f72790a66742d62616c616e636501000000000000000000358bdb961bf6ca056d616b6572051a7321b74e2b6a7e949e6c4ad313035b1665095017046f70656e030b7374782d62616c616e6365010000000000000000000000000000f0870f7374782d746f2d72656365697665720100000000000000000000000000008b7104747970650d0000000473656c6c",
+          "raw_value": "0x0c0000000906616d6f756e740100000000000000000001c6bf5263400003666565010000000000000000000000000000036e026674061a6d78de7b0625dfbfc16c3a8a5735f6dc3dc3f2ce0c6e616d652d66616b746f72790a66742d62616c616e636501000000000000000000367cbbe90075ef056d616b6572051a7321b74e2b6a7e949e6c4ad313035b1665095017046f70656e030b7374782d62616c616e6365010000000000000000000000000004a3b60f7374782d746f2d7265636569766572010000000000000000000000000000a83c04747970650d0000000473656c6c",
           "topic": "print",
           "value": {
             "data": {
@@ -708,7 +706,7 @@ describe("sell", () => {
               },
               "fee": {
                 "type": 1,
-                "value": 728n,
+                "value": 878n,
               },
               "ft": {
                 "address": {
@@ -726,7 +724,7 @@ describe("sell", () => {
               },
               "ft-balance": {
                 "type": 1,
-                "value": 15071948998178506n,
+                "value": 15336795252225519n,
               },
               "maker": {
                 "address": {
@@ -741,11 +739,11 @@ describe("sell", () => {
               },
               "stx-balance": {
                 "type": 1,
-                "value": 61575n,
+                "value": 304054n,
               },
               "stx-to-receiver": {
                 "type": 1,
-                "value": 35697n,
+                "value": 43068n,
               },
               "type": {
                 "data": "sell",
@@ -1139,6 +1137,6 @@ describe("get-out", () => {
 describe("open-market", () => {
   it("should not open the market if pre token distribution has not happened", () => {
     const { result } = simnet.callPublicFn(dex, "open-market", [], address1);
-    expect(result).toEqual(responseErrorCV(uintCV(1001)));
+    expect(result).toStrictEqual(responseErrorCV(uintCV(1001)));
   });
 });

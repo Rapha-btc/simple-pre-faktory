@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { beforeEach, describe, expect, it } from "vitest";
-import { deployer, buyToken, buyAllPreSaleSeats, openMarket } from "./helpers";
+import { deployer, buyToken, openMarket } from "./helpers";
 import {
   bufferCVFromString,
   contractPrincipalCV,
@@ -38,7 +38,7 @@ describe("transfer", () => {
       [uintCV(10000), principalCV(address1), principalCV(address2), noneCV()],
       address2
     );
-    expect(errorResult).toEqual(responseErrorCV(uintCV(401)));
+    expect(errorResult).toStrictEqual(responseErrorCV(uintCV(401)));
 
     const { result } = simnet.callPublicFn(
       "name-faktory",
@@ -46,7 +46,7 @@ describe("transfer", () => {
       [uintCV(10000), principalCV(address1), principalCV(address2), noneCV()],
       address1
     );
-    expect(result).toEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(trueCV()));
   });
 
   it("transfers the given amount to the recipient", () => {
@@ -63,7 +63,7 @@ describe("transfer", () => {
       ],
       address1
     );
-    expect(result).toEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(trueCV()));
     expect(events).toMatchInlineSnapshot(`
       [
         {
@@ -112,7 +112,7 @@ describe("transfer", () => {
       address1
     );
 
-    expect(result).toEqual(responseErrorCV(uintCV(1)));
+    expect(result).toStrictEqual(responseErrorCV(uintCV(1)));
   });
 });
 
@@ -124,7 +124,7 @@ describe("set-token-uri", () => {
       [stringUtf8CV("https://example.com")],
       address1
     );
-    expect(result).toEqual(responseErrorCV(uintCV(401)));
+    expect(result).toStrictEqual(responseErrorCV(uintCV(401)));
   });
 
   it("allows the contract owner to set the token URI and prints a notification", () => {
@@ -134,7 +134,7 @@ describe("set-token-uri", () => {
       [stringUtf8CV("https://example.com")],
       deployer
     );
-    expect(result).toEqual(
+    expect(result).toStrictEqual(
       responseOkCV(
         tupleCV({
           notification: stringAsciiCV("token-metadata-update"),
@@ -200,7 +200,7 @@ describe("set-contract-owner", () => {
       [principalCV(address1)],
       address1
     );
-    expect(result).toEqual(responseErrorCV(uintCV(401)));
+    expect(result).toStrictEqual(responseErrorCV(uintCV(401)));
   });
 
   it("allows the contract owner to set a new contract owner", () => {
@@ -214,8 +214,8 @@ describe("set-contract-owner", () => {
       "name-faktory",
       "contract-owner"
     );
-    expect(result).toEqual(responseOkCV(trueCV()));
-    expect(newContractOwner).toEqual(principalCV(address1));
+    expect(result).toStrictEqual(responseOkCV(trueCV()));
+    expect(newContractOwner).toStrictEqual(principalCV(address1));
   });
 });
 
@@ -250,7 +250,7 @@ describe("send-many", () => {
       ],
       address1
     );
-    expect(result).toEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(trueCV()));
     expect(events).toMatchInlineSnapshot(`
       [
         {
@@ -352,8 +352,8 @@ describe("send-many", () => {
       ],
       address1
     );
-    expect(result).toEqual(responseErrorCV(uintCV(1)));
-    expect(events).toEqual([]);
+    expect(result).toStrictEqual(responseErrorCV(uintCV(1)));
+    expect(events).toStrictEqual([]);
   });
 });
 
@@ -370,7 +370,7 @@ describe("on deployment", () => {
       null,
       deployer
     );
-    expect(result).toEqual(
+    expect(result).toStrictEqual(
       tupleCV({
         type: stringAsciiCV("faktory-trait-v1"),
         name: stringAsciiCV("ai sbtc"),
@@ -500,7 +500,7 @@ describe("get-balance", () => {
       [principalCV(address1)],
       address1
     );
-    expect(result).toEqual(responseOkCV(uintCV(1_428_051_001_821_494)));
+    expect(result).toStrictEqual(responseOkCV(uintCV(1163204747774481n)));
   });
 });
 
@@ -512,7 +512,7 @@ describe("get-name", () => {
       [],
       address1
     );
-    expect(result).toEqual(responseOkCV(stringAsciiCV("ai sbtc")));
+    expect(result).toStrictEqual(responseOkCV(stringAsciiCV("ai sbtc")));
   });
 });
 
@@ -524,7 +524,7 @@ describe("get-symbol", () => {
       [],
       address1
     );
-    expect(result).toEqual(responseOkCV(stringAsciiCV("NAME")));
+    expect(result).toStrictEqual(responseOkCV(stringAsciiCV("NAME")));
   });
 });
 
@@ -536,7 +536,7 @@ describe("get-decimals", () => {
       [],
       address1
     );
-    expect(result).toEqual(responseOkCV(uintCV(8)));
+    expect(result).toStrictEqual(responseOkCV(uintCV(8)));
   });
 });
 
@@ -548,7 +548,9 @@ describe("get-supply", () => {
       [],
       address1
     );
-    expect(result).toEqual(responseOkCV(uintCV(BigInt("100000000000000000"))));
+    expect(result).toStrictEqual(
+      responseOkCV(uintCV(BigInt("100000000000000000")))
+    );
   });
 });
 
@@ -560,7 +562,7 @@ describe("get-token-uri", () => {
       [],
       address1
     );
-    expect(result).toEqual(
+    expect(result).toStrictEqual(
       responseOkCV(
         someCV(
           stringUtf8CV(

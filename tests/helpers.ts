@@ -31,7 +31,7 @@ export const pre = contractPrincipalCV(deployer, "name-pre-faktory");
 export const getSbtc = (account: string) => {
   const { result } = simnet.callPublicFn("sbtc-token", "faucet", [], account);
 
-  expect(result).toEqual(responseOkCV(trueCV()));
+  expect(result).toStrictEqual(responseOkCV(trueCV()));
 };
 
 export const buyToken = (account: string, amount: number) => {
@@ -42,7 +42,7 @@ export const buyToken = (account: string, amount: number) => {
     [token, uintCV(amount)],
     account
   );
-  expect(result).toEqual(responseOkCV(trueCV()));
+  expect(result).toStrictEqual(responseOkCV(trueCV()));
 };
 
 const stubTokenContractName = "stub-token";
@@ -97,5 +97,5 @@ export const openMarket = () => {
     [],
     deployer
   );
-  expect(result).toEqual(responseOkCV(trueCV()));
+  expect(result).toStrictEqual(responseOkCV(trueCV()));
 };
