@@ -141,7 +141,6 @@
 (define-private (remove-seat-holder)
   (let ((filtered-list (filter not-matching-owner (var-get seat-holders))))
     (var-set seat-holders filtered-list)
-    (map-delete seats-owned (var-get target-owner))
     (ok true)))
 
 (define-private (not-matching-owner (entry {owner: principal, seats: uint}))
