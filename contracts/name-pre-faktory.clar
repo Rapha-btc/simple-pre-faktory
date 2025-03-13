@@ -201,7 +201,7 @@
     (let (
         (user-seats (default-to u0 (map-get? seats-owned tx-sender)))
         (seat-owner tx-sender))
-        (asserts! (not (is-period-1-expired)) ERR-NOT-EXPIRED) 
+        (asserts! (is-period-1-expired) ERR-NOT-EXPIRED) 
         (asserts! (is-eq (var-get distribution-height) u0) ERR-DISTRIBUTION-ALREADY-SET)
         (asserts! (> user-seats u0) ERR-NOT-SEAT-OWNER)
         

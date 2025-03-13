@@ -21,7 +21,7 @@
 
 (contract-call? 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory-dex open-market)
 
-::advance_chain_tip 2100
+::advance_chain_tip 2000
 
 (contract-call? 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-pre-faktory can-trigger-airdrop)
 
