@@ -90,8 +90,6 @@
 (define-constant ERR-NOT-EXPIRED (err u309))
 (define-constant ERR-CONTRACT-INSUFFICIENT-FUNDS (err u311))
 (define-constant ERR-INVALID-SEAT-COUNT (err u313))
-(define-constant ERR-SLICE-FAILED (err u314))
-(define-constant ERR-TOO-LONG (err u315))
 (define-constant ERR-REMOVING-HOLDER (err u316))
 (define-constant ERR-DISTRIBUTION-ALREADY-SET (err u320))
 (define-constant ERR-DISTRIBUTION-NOT-INITIALIZED (err u321))
@@ -143,6 +141,7 @@
 (define-private (remove-seat-holder)
   (let ((filtered-list (filter not-matching-owner (var-get seat-holders))))
     (var-set seat-holders filtered-list)
+    (map-delete seats-owned (var-get target-owner))
     (ok true)))
 
 (define-private (not-matching-owner (entry {owner: principal, seats: uint}))
