@@ -315,7 +315,7 @@
         distribution-height: (var-get distribution-height),
         accelerated-vesting: (var-get accelerated-vesting),
         market-open: (var-get market-open),
-        governance-active: (var-get governance-active)
+        governance-active: (var-get governance-active),
         seat-holders: (var-get seat-holders)
     }))
 
