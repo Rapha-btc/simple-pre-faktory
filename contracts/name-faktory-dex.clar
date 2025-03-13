@@ -12,7 +12,6 @@
     (define-constant ERR-FETCHING-BUY-INFO (err u1005)) 
     (define-constant ERR-FETCHING-SELL-INFO (err u1006)) 
     (define-constant ERR-TOKEN-NOT-AUTH (err u401))
-    (define-constant ERR-UNAUTHORIZED-CALLER (err u402))
     
     (define-constant FEE-RECEIVER 'ST1Y9QV2CY6R0NQNS8CPA5C2835QNGHMTFE94FV5R)
     (define-constant G-RECEIVER 'ST3BA7GVAKQTCTX68VPAD9W8CBYG71JNMGBCAD48N)
@@ -25,6 +24,7 @@
     (define-constant TARGET_STX u5000000)
     (define-constant FAK_STX u1000000) ;; this will be 1M satoshis
     (define-constant GRAD-FEE u100000)
+    (define-constant DEX-AMOUNT u250000)
     
     ;; data vars
     (define-data-var open bool false)
@@ -32,7 +32,6 @@
     (define-data-var ft-balance uint u0)
     (define-data-var stx-balance uint u0)
     (define-data-var premium uint u25)
-    (define-constant DEX-AMOUNT u250000)
     
     (define-public (buy (ft <faktory-token>) (ubtc uint))
       (begin
@@ -151,7 +150,7 @@
           (try! (as-contract (contract-call? .sbtc-token transfer stx-to-receiver tx-sender stx-receiver none)))
           (try! (as-contract (contract-call? .sbtc-token transfer (- fee pre-fee) tx-sender FEE-RECEIVER none))) 
           (try! (contract-call? .sbtc-token transfer pre-fee tx-sender .name-pre-faktory none))
-          (try! (as-contract (contract-call? .name-pre-faktory create-fees-receipt pre-fee))) ;; this address could be a multi-sig        
+          (try! (as-contract (contract-call? .name-pre-faktory create-fees-receipt pre-fee)))      
           (var-set stx-balance new-stx)
           (var-set ft-balance new-ft)
           (print {type: "sell", ft: (contract-of ft), amount: amount, stx-to-receiver: stx-to-receiver, maker: tx-sender,
