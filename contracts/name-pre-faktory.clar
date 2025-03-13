@@ -204,7 +204,7 @@
     (let (
         (user-seats (default-to u0 (map-get? seats-owned tx-sender)))
         (seat-owner tx-sender))
-        (asserts! (is-period-1-expired) ERR-NOT-EXPIRED) 
+        (asserts! (not (is-period-1-expired)) ERR-NOT-EXPIRED) 
         (asserts! (is-eq (var-get distribution-height) u0) ERR-DISTRIBUTION-ALREADY-SET)
         (asserts! (> user-seats u0) ERR-NOT-SEAT-OWNER)
         
@@ -312,7 +312,13 @@
         is-period-1-expired: (is-period-1-expired),
         is-distribution-period: (> (var-get distribution-height) u0),
         total-users: (var-get total-users),
-        total-seats-taken: (var-get total-seats-taken)
+        total-seats-taken: (var-get total-seats-taken),
+        deployment-height: (var-get deployment-height),
+        expiration-period: EXPIRATION-PERIOD,
+        distribution-height: (var-get distribution-height),
+        accelerated-vesting: (var-get accelerated-vesting),
+        market-open: (var-get market-open),
+        governance-active: (var-get governance-active)
     }))
 
 (define-read-only (get-user-info (user principal))
