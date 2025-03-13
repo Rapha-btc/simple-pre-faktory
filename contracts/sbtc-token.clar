@@ -27,66 +27,58 @@
 
 ;; public functions
 (define-public (transfer (amount uint) (sender principal) (recipient principal) (memo (optional (buff 34))))
-(begin
-;; Authorization check
-(asserts! (or (is-eq tx-sender sender) (is-eq contract-caller sender)) ERR_NOT_OWNER)
-;; Sender validation
-(asserts! (not (is-eq sender recipient)) ERR_INVALID_SENDER)
-;; Balance check
-(asserts! (<= amount (ft-get-balance sbtc-token sender)) ERR_INSUFFICIENT_BALANCE)
-;; Recipient validation - ensure not burning tokens
-(asserts! (not (is-eq recipient (as-contract tx-sender))) ERR_INVALID_RECIPIENT)
-;; Perform transfer
-(try! (ft-transfer? sbtc-token amount sender recipient))
-;; Handle memo if provided
-(match memo to-print (print to-print) 0x)
-(ok true)
+  (begin
+    ;; Authorization check
+    (asserts! (or (is-eq tx-sender sender) (is-eq contract-caller sender)) ERR_NOT_OWNER)
+    ;; Sender validation
+    (asserts! (not (is-eq sender recipient)) ERR_INVALID_SENDER)
+    ;; Balance check
+    (asserts! (<= amount (ft-get-balance sbtc-token sender)) ERR_INSUFFICIENT_BALANCE)
+    ;; Recipient validation - ensure not burning tokens
+    (asserts! (not (is-eq recipient (as-contract tx-sender))) ERR_INVALID_RECIPIENT)
+    ;; Perform transfer
+    (try! (ft-transfer? sbtc-token amount sender recipient))
+    ;; Handle memo if provided
+    (match memo to-print (print to-print) 0x)
+    (ok true)
+  )
 )
-)
+
 ;; faucet function for testing
 (define-public (faucet)
-(begin
-(try! (ft-mint? sbtc-token u690000000 tx-sender)) ;; Mint 6.9 sBTC to caller
-(ok true)
+  (begin
+    (try! (ft-mint? sbtc-token u690000000 tx-sender)) ;; Mint 6.9 sBTC to caller
+    (ok true)
+  )
 )
 
-)
 ;; read only functions
 (define-read-only (get-name)
-(ok (var-get token-name))
+  (ok (var-get token-name))
 )
-(define-read-only (get-symbol)
-(ok (var-get token-symbol))
 
+(define-read-only (get-symbol)
+  (ok (var-get token-symbol))
 )
+
 (define-read-only (get-decimals)
-(ok token-decimals)
+  (ok token-decimals)
 )
 
 (define-read-only (get-balance (who principal))
-(ok (ft-get-balance sbtc-token who))
+  (ok (ft-get-balance sbtc-token who))
 )
 
 (define-read-only (get-total-supply)
-(ok (ft-get-supply sbtc-token))
+  (ok (ft-get-supply sbtc-token))
 )
 
 (define-read-only (get-token-uri)
-(ok (var-get token-uri))
+  (ok (var-get token-uri))
 )
 
 ;; initialize contract
 (begin
-;; Mint initial supply to contract deployer
-
-(try! (ft-mint? sbtc-token INITIAL_SUPPLY tx-sender))
-(try! (ft-mint? sbtc-token INITIAL_SUPPLY 'ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5))
-(try! (ft-mint? sbtc-token INITIAL_SUPPLY 'ST2CY5V39NHDPWSXMW9QDT3HC3GD6Q6XX4CFRK9AG))
-(try! (ft-mint? sbtc-token INITIAL_SUPPLY 'ST2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1HR05NNC))
-(try! (ft-mint? sbtc-token INITIAL_SUPPLY 'ST2NEB84ASENDXKYGJPQW86YXQCEFEX2ZQPG87ND))
-(try! (ft-mint? sbtc-token INITIAL_SUPPLY 'ST2REHHS5J3CERCRBEPMGH7921Q6PYKAADT7JP2VB))
-(try! (ft-mint? sbtc-token INITIAL_SUPPLY 'ST3AM1A56AK2C1XAFJ4115ZSV26EB49BVQ10MGCS0))
-(try! (ft-mint? sbtc-token INITIAL_SUPPLY 'ST3NBRSFKX28FQ2ZJ1MAKX58HKHSDGNV5N7R21XCP))
-(try! (ft-mint? sbtc-token INITIAL_SUPPLY 'ST3PF13W7Z0RRM42A8VZRVFQ75SV1K26RXEP8YGKJ))
-(try! (ft-mint? sbtc-token INITIAL_SUPPLY 'STNHKEPYEPJ8ET55ZZ0M5A34J0R3N5FM2CMMMAZ6))
+  ;; Mint initial supply to contract deployer
+  (try! (ft-mint? sbtc-token INITIAL_SUPPLY tx-sender))
 )

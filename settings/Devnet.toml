@@ -65,6 +65,14 @@ balance = 100_000_000_000_000
 # stx_address: ST3NBRSFKX28FQ2ZJ1MAKX58HKHSDGNV5N7R21XCP
 # btc_address: n2v875jbJ4RjBnTjgbfikDfnwsDV5iUByw
 
+[accounts.wallet_9]
+mnemonic = "anchor dragon novel immune apology half field pledge motor addict room ticket unlock summer enact crouch fish basic inject under museum hockey still cereal"
+balance = 100_000_000_000_000
+
+[accounts.wallet_10]
+mnemonic = "case velvet pass cabin destroy drink enemy gold sibling model train nasty guitar finish dish put long group blanket month eight quantum derive thunder"
+balance = 100_000_000_000_000
+
 [accounts.faucet]
 mnemonic = "shadow private easily thought say logic fault paddle word top book during ignore notable orange flight clock image wealth health outside kitten belt reform"
 balance = 100_000_000_000_000
