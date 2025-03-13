@@ -141,15 +141,12 @@
           {found: false, index: (+ (get index state) u1)})))
 
 (define-private (remove-seat-holder)
-  (let ((position (find-holder-position (var-get seat-holders)))
-        (current-list (var-get seat-holders)))
-    (match position 
-        pos (let ((before-slice (unwrap! (slice? current-list u0 pos) ERR-SLICE-FAILED))
-                  (after-slice (unwrap! (slice? current-list (+ pos u1) (len current-list)) ERR-SLICE-FAILED))
-                  (updated-list (unwrap! (as-max-len? (concat before-slice after-slice) u20) ERR-TOO-LONG)))
-              (var-set seat-holders updated-list)
-              (ok true))
-        (ok false))))  ;; If position not found, do nothing
+  (let ((filtered-list (filter not-matching-owner (var-get seat-holders))))
+    (var-set seat-holders filtered-list)
+    (ok true)))
+
+(define-private (not-matching-owner (entry {owner: principal, seats: uint}))
+  (not (is-eq (get owner entry) (var-get target-owner))))
 
 ;; Main functions
 ;; Buy seats in Period 1
@@ -319,6 +316,7 @@
         accelerated-vesting: (var-get accelerated-vesting),
         market-open: (var-get market-open),
         governance-active: (var-get governance-active)
+        seat-holders: (var-get seat-holders)
     }))
 
 (define-read-only (get-user-info (user principal))
