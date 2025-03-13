@@ -11,6 +11,7 @@ import {
   cvToJSON,
   cvToValue,
   ListCV,
+  noneCV,
   principalCV,
   responseErrorCV,
   responseOkCV,
@@ -277,9 +278,7 @@ describe("refund", () => {
     expect(refund).toStrictEqual(responseErrorCV(uintCV(302)));
   });
 
-  // There seems to be an error removing the seat holder from the list, which
-  // makes the following skipped tests green
-  it.skip("should only allow refunding if period 1 expired", () => {
+  it("should only allow refunding if period 1 expired", () => {
     const { result } = simnet.callPublicFn(
       "name-pre-faktory",
       "buy-up-to",
@@ -306,7 +305,7 @@ describe("refund", () => {
     expect(refundAfterExpire).toStrictEqual(responseOkCV(trueCV()));
   });
 
-  it.skip("should transfer back the invested usbtc", () => {
+  it("should transfer back the invested usbtc", () => {
     getSbtc(address2);
     const { result } = simnet.callPublicFn(
       "name-pre-faktory",
@@ -323,10 +322,20 @@ describe("refund", () => {
       address1
     );
     expect(refund).toStrictEqual(responseOkCV(trueCV()));
-    expect(events[0]).toMatchInlineSnapshot();
+    expect(events[0]).toMatchInlineSnapshot(`
+      {
+        "data": {
+          "amount": "40000",
+          "asset_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.sbtc-token::sbtc-token",
+          "recipient": "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5",
+          "sender": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-pre-faktory",
+        },
+        "event": "ft_transfer_event",
+      }
+    `);
   });
 
-  it.skip("should remove the seat owner from the list of holders", () => {
+  it("should remove the seat owner from the list of holders", () => {
     simnet.callPublicFn("name-pre-faktory", "buy-up-to", [uintCV(2)], address1);
     const holders = cvToJSON(
       simnet.getDataVar("name-pre-faktory", "seat-holders") as ListCV
@@ -341,7 +350,7 @@ describe("refund", () => {
     expect(holdersAfter.value.length).toBe(0);
   });
 
-  it.skip("should remove the seats owned by the user", () => {
+  it("should remove the seats owned by the user", () => {
     simnet.callPublicFn("name-pre-faktory", "buy-up-to", [uintCV(2)], address1);
     const seatsOwned = simnet.getMapEntry(
       "name-pre-faktory",
@@ -352,16 +361,16 @@ describe("refund", () => {
     simnet.mineEmptyBurnBlocks(2100);
     simnet.callPublicFn("name-pre-faktory", "refund", [], address1);
 
-    expect(() =>
+    expect(
       simnet.getMapEntry(
         "name-pre-faktory",
         "seats-owned",
         principalCV(address1)
       )
-    ).toThrowError();
+    ).toStrictEqual(noneCV());
   });
 
-  it.skip("should update the total seats taken, the total users and the usbtc balance", () => {
+  it("should update the total seats taken, the total users and the usbtc balance", () => {
     simnet.callPublicFn("name-pre-faktory", "buy-up-to", [uintCV(2)], address1);
     const totalSeatsTaken = simnet.getDataVar(
       "name-pre-faktory",
@@ -395,7 +404,7 @@ describe("refund", () => {
     expect(totalUsersAfter).toStrictEqual(uintCV(0));
   });
 
-  it.skip("should print a receipt", () => {
+  it("should print a receipt", () => {
     simnet.callPublicFn("name-pre-faktory", "buy-up-to", [uintCV(2)], address1);
     simnet.mineEmptyBurnBlocks(2100);
     const { result, events } = simnet.callPublicFn(
@@ -405,7 +414,7 @@ describe("refund", () => {
       address1
     );
     expect(result).toStrictEqual(responseOkCV(trueCV()));
-    expect(events[2]).toMatchInlineSnapshot();
+    expect(events[2]).toMatchInlineSnapshot(`undefined`);
   });
 });
 
@@ -828,17 +837,14 @@ describe("trigger-fee-airdrop", () => {
     getSbtc(address2);
   });
 
-  // Skipping: from what I understood this test should be green.
-  // If you trigger an airdrop and then another one before the next cooldown period you should get an error.
-  // That is not currently happening and the second airdrop goes trhough.
-  it.skip("should not allow triggering during cooldown period", () => {
+  it("should not allow triggering during cooldown period", () => {
     buyAllPreSaleSeats();
     simnet.callPublicFn("name-faktory-dex", "open-market", [], deployer);
 
     simnet.callPublicFn(
       "name-faktory-dex",
       "buy",
-      [token, uintCV(5_000_000)],
+      [token, uintCV(5_000)],
       address2
     );
     simnet.mineEmptyBurnBlocks(2100);
@@ -849,32 +855,29 @@ describe("trigger-fee-airdrop", () => {
       [],
       address1
     );
-    expect(result).toStrictEqual(responseOkCV(uintCV(40000n)));
+    expect(result).toStrictEqual(responseOkCV(uintCV(40n)));
 
-    simnet.callPublicFn(
+    const { result: buyresult } = simnet.callPublicFn(
       "name-faktory-dex",
       "buy",
-      [token, uintCV(3_000_000)],
+      [token, uintCV(3_000)],
       address2
     );
-    const { result: result2 } = simnet.callPublicFn(
+    expect(buyresult).toStrictEqual(responseOkCV(trueCV()));
+
+    const { result: result3 } = simnet.callPublicFn(
       "name-pre-faktory",
       "trigger-fee-airdrop",
       [],
       address1
     );
-    expect(result2).toStrictEqual(responseErrorCV(uintCV(324)));
+    expect(result3).toStrictEqual(responseErrorCV(uintCV(324)));
   });
 
-  it.only("should not allow triggering if there are no fees to distribute", () => {
-    expect(
-      simnet.callPublicFn(
-        "name-pre-faktory",
-        "buy-up-to",
-        [uintCV(1)],
-        address1
-      ).result
-    ).toStrictEqual(responseOkCV(trueCV()));
+  it("should not allow triggering if there are no fees to distribute", () => {
+    buyAllPreSaleSeats();
+    simnet.callPublicFn("name-faktory-dex", "open-market", [], deployer);
+
     simnet.mineEmptyBurnBlocks(2100);
 
     expect(
@@ -893,7 +896,7 @@ describe("trigger-fee-airdrop", () => {
     // The only way would be by triggering a refund but that's currently not working
   });
 
-  it.only("should distribute the fee share for every seat owner", () => {
+  it("should distribute the fee share for every seat owner", () => {
     buyAllPreSaleSeats();
     simnet.callPublicFn("name-faktory-dex", "open-market", [], deployer);
 
