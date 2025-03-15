@@ -36,9 +36,7 @@
     
     (define-public (buy (ft <faktory-token>) (ubtc uint))
       (begin
-        (if (not (var-get open))
-          (try! (open-market))
-          true)
+        (and (not (var-get open)) (try! (open-market)))
         (asserts! (is-eq DEX-TOKEN (contract-of ft)) ERR-TOKEN-NOT-AUTH)
         (asserts! (var-get open) ERR-MARKET-CLOSED)
         (asserts! (> ubtc u0) ERR-STX-NON-POSITIVE)
