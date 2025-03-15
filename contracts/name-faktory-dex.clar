@@ -11,6 +11,7 @@
     (define-constant ERR-FT-NON-POSITIVE (err u1004))
     (define-constant ERR-FETCHING-BUY-INFO (err u1005)) 
     (define-constant ERR-FETCHING-SELL-INFO (err u1006)) 
+    (define-constant ERR-AMOUNT-TOO-LOW (err u1007))
     (define-constant ERR-TOKEN-NOT-AUTH (err u401))
     
     (define-constant FEE-RECEIVER 'ST1Y9QV2CY6R0NQNS8CPA5C2835QNGHMTFE94FV5R)
@@ -55,6 +56,7 @@
               (new-stx (get new-stx in-info))
               (ft-receiver tx-sender)
               )
+        (asserts! (>= pre-fee u1) ERR-AMOUNT-TOO-LOW)
         (try! (contract-call? .sbtc-token transfer (- fee pre-fee) tx-sender FEE-RECEIVER none)) 
         (try! (contract-call? .sbtc-token transfer pre-fee tx-sender .name-pre-faktory none))
         (try! (as-contract (contract-call? .name-pre-faktory create-fees-receipt pre-fee)))        
@@ -149,6 +151,7 @@
               (stx-receiver tx-sender)
               )
           (asserts! (>= total-stx stx-out) ERR-STX-BALANCE-TOO-LOW)
+          (asserts! (>= pre-fee u1) ERR-AMOUNT-TOO-LOW)
           (try! (contract-call? ft transfer amount tx-sender (as-contract tx-sender) none))
           (try! (as-contract (contract-call? .sbtc-token transfer stx-to-receiver tx-sender stx-receiver none)))
           (try! (as-contract (contract-call? .sbtc-token transfer (- fee pre-fee) tx-sender FEE-RECEIVER none))) 

@@ -62,7 +62,6 @@
 (define-data-var total-seats-taken uint u0)
 (define-data-var total-users uint u0)
 (define-data-var distribution-height uint u0)
-(define-data-var deployment-height uint burn-block-height)
 (define-data-var accelerated-vesting bool false)
 (define-data-var market-open bool false)
 (define-data-var governance-active bool false)
@@ -93,10 +92,6 @@
 (define-constant ERR-REMOVING-HOLDER (err u316))
 (define-constant ERR-DISTRIBUTION-ALREADY-SET (err u320))
 (define-constant ERR-DISTRIBUTION-NOT-INITIALIZED (err u321))
-
-;; Helper functions for period management
-(define-private (is-period-1-expired)
-    (> burn-block-height (+ (var-get deployment-height) EXPIRATION-PERIOD)))
 
 ;; Helper function to update seat holders list
 (define-private (update-seat-holder (owner principal) (seat-count uint))
@@ -199,7 +194,6 @@
     (let (
         (user-seats (default-to u0 (map-get? seats-owned tx-sender)))
         (seat-owner tx-sender))
-        (asserts! (is-period-1-expired) ERR-NOT-EXPIRED) 
         (asserts! (is-eq (var-get distribution-height) u0) ERR-DISTRIBUTION-ALREADY-SET)
         (asserts! (> user-seats u0) ERR-NOT-SEAT-OWNER)
         
@@ -304,11 +298,9 @@
 (define-read-only (get-contract-status)
     (ok 
     {
-        is-period-1-expired: (is-period-1-expired),
         is-distribution-period: (> (var-get distribution-height) u0),
         total-users: (var-get total-users),
         total-seats-taken: (var-get total-seats-taken),
-        deployment-height: (var-get deployment-height),
         expiration-period: EXPIRATION-PERIOD,
         distribution-height: (var-get distribution-height),
         accelerated-vesting: (var-get accelerated-vesting),
