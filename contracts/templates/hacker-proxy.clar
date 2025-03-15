@@ -6,6 +6,8 @@
 
 ;; frontend and agent tools prevent from overbuying versus amount to graduation, but not smart contract...
 ;; therefore makes sense to enforce fat finger protection at the smart contract level
+;; but at this point they can also directly deplete the sBTC from user wallet
+;; this protects against a genuine FAT finger mistake though
 
 ;; Example of Malicious proxy contract to attack the DEX
 (use-trait faktory-token .faktory-trait-v1.sip-010-trait)
