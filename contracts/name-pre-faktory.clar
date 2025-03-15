@@ -15,7 +15,6 @@
 (define-constant MAX-SEATS-PER-USER u7)
 (define-constant PRICE-PER-SEAT u20000) ;; 20K sats per seat
 (define-constant TOKENS-PER-SEAT u200000000000000) ;; 2M tokens per seat if supply 1B
-(define-constant EXPIRATION-PERIOD u2100) ;; 1 Stacks reward cycle in PoX-4
 (define-constant DEX-AMOUNT u250000)
 (define-constant MULTI-SIG-AMOUNT u10000)
 (define-constant FEE-AMOUNT u140000)
@@ -301,7 +300,6 @@
         is-distribution-period: (> (var-get distribution-height) u0),
         total-users: (var-get total-users),
         total-seats-taken: (var-get total-seats-taken),
-        expiration-period: EXPIRATION-PERIOD,
         distribution-height: (var-get distribution-height),
         accelerated-vesting: (var-get accelerated-vesting),
         market-open: (var-get market-open),
