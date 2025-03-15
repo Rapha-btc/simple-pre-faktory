@@ -12,6 +12,7 @@
     (define-constant ERR-FETCHING-BUY-INFO (err u1005)) 
     (define-constant ERR-FETCHING-SELL-INFO (err u1006)) 
     (define-constant ERR-AMOUNT-TOO-LOW (err u1007))
+    (define-constant ERR-AMOUNT-TOO-HIGH (err u1008))
     (define-constant ERR-TOKEN-NOT-AUTH (err u401))
     
     (define-constant FEE-RECEIVER 'ST1Y9QV2CY6R0NQNS8CPA5C2835QNGHMTFE94FV5R)
@@ -55,7 +56,9 @@
               (tokens-out (get tokens-out in-info))
               (new-stx (get new-stx in-info))
               (ft-receiver tx-sender)
+              (stx-max (/ (* (get stx-to-grad in-info) u115) u100))
               )
+        (asserts! (<= ubtc stx-max) ERR-AMOUNT-TOO-HIGH)
         (asserts! (>= pre-fee u1) ERR-AMOUNT-TOO-LOW)
         (try! (contract-call? .sbtc-token transfer (- fee pre-fee) tx-sender FEE-RECEIVER none)) 
         (try! (contract-call? .sbtc-token transfer pre-fee tx-sender .name-pre-faktory none))
