@@ -28,6 +28,7 @@
     
     ;; data vars
     (define-data-var open bool false)
+    (define-data-var bonded bool false)
     (define-data-var fak-ustx uint u0)
     (define-data-var ft-balance uint u0)
     (define-data-var stx-balance uint u0)
@@ -35,6 +36,7 @@
     
     (define-public (buy (ft <faktory-token>) (ubtc uint))
       (begin
+        (and (not (var-get open)) (unwrap-panic (open-market)))
         (asserts! (is-eq DEX-TOKEN (contract-of ft)) ERR-TOKEN-NOT-AUTH)
         (asserts! (var-get open) ERR-MARKET-CLOSED)
         (asserts! (> ubtc u0) ERR-STX-NON-POSITIVE)
@@ -82,6 +84,7 @@
                 ;;              'ST27Q7Z7P5MTJN2B3M9Q406XPCDB1VFZJ3KWX3CES xyk-pool-uri true)))
                 (try! (as-contract (contract-call? .sbtc-token transfer GRAD-FEE tx-sender G-RECEIVER none)))
                 (var-set open false)
+                (var-set bonded true)
                 (var-set stx-balance u0)
                 (var-set ft-balance u0)
                 (try! (as-contract (contract-call? .name-pre-faktory toggle-bonded))) 
@@ -188,6 +191,7 @@
     
     (define-public (open-market) 
       (let ((is-prelaunch-allowing (unwrap-panic (contract-call? .name-pre-faktory is-market-open))))
+        (asserts! (not (var-get bonded)) ERR-MARKET-CLOSED)
         (asserts! is-prelaunch-allowing ERR-MARKET-CLOSED)
         (var-set stx-balance DEX-AMOUNT)
         (var-set open true)
