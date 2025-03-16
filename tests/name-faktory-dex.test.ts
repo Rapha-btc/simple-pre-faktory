@@ -28,7 +28,7 @@ describe("buy", () => {
     getSbtc(address2);
     getSbtc(address3);
 
-    console.log("--- Starting completeCurve() ---");
+    // console.log("--- Starting completeCurve() ---");
 
     const result1 = simnet.callPublicFn(
       "name-faktory-dex",
@@ -36,11 +36,11 @@ describe("buy", () => {
       [token, uintCV(2_000_000)],
       address1
     );
-    console.log("Buy 1 result:", result1.result);
-    console.log(
-      "STX Balance after Buy 1:",
-      cvToJSON(simnet.getDataVar(dex, "stx-balance")).value
-    );
+    // console.log("Buy 1 result:", result1.result);
+    // console.log(
+    //   "STX Balance after Buy 1:",
+    //   cvToJSON(simnet.getDataVar(dex, "stx-balance")).value
+    // );
 
     const result2 = simnet.callPublicFn(
       "name-faktory-dex",
@@ -48,11 +48,11 @@ describe("buy", () => {
       [token, uintCV(2_000_000)],
       address2
     );
-    console.log("Buy 2 result:", result2.result);
-    console.log(
-      "STX Balance after Buy 2:",
-      cvToJSON(simnet.getDataVar(dex, "stx-balance")).value
-    );
+    // console.log("Buy 2 result:", result2.result);
+    // console.log(
+    //   "STX Balance after Buy 2:",
+    //   cvToJSON(simnet.getDataVar(dex, "stx-balance")).value
+    // );
 
     // Use a smaller amount for the final buy to avoid hitting your fat finger protection
     const result3 = simnet.callPublicFn(
@@ -61,23 +61,23 @@ describe("buy", () => {
       [token, uintCV(950_000)],
       address3
     );
-    console.log("Buy 3 result:", result3.result);
-    console.log(
-      "STX Balance after Buy 3:",
-      cvToJSON(simnet.getDataVar(dex, "stx-balance")).value
-    );
-    console.log("TARGET_STX:", 5000000);
+    // console.log("Buy 3 result:", result3.result);
+    // console.log(
+    //   "STX Balance after Buy 3:",
+    //   cvToJSON(simnet.getDataVar(dex, "stx-balance")).value
+    // );
+    // console.log("TARGET_STX:", 5000000);
 
     // Now check if the market is closed/bonded
-    console.log("After all buys:");
-    console.log("- open:", cvToJSON(simnet.getDataVar(dex, "open")));
-    console.log("- bonded:", cvToJSON(simnet.getDataVar(dex, "bonded")));
+    // console.log("After all buys:");
+    // console.log("- open:", cvToJSON(simnet.getDataVar(dex, "open")));
+    // console.log("- bonded:", cvToJSON(simnet.getDataVar(dex, "bonded")));
 
     // Log all events to see exactly what's happening
-    console.log("--- All events from final buy ---");
-    for (let i = 0; i < result3.events.length; i++) {
-      console.log(`Event ${i}:`, JSON.stringify(result3.events[i], null, 2));
-    }
+    // console.log("--- All events from final buy ---");
+    // for (let i = 0; i < result3.events.length; i++) {
+    //   console.log(`Event ${i}:`, JSON.stringify(result3.events[i], null, 2));
+    // }
 
     return result3;
   };
