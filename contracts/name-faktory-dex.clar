@@ -41,7 +41,7 @@
         (and (not (var-get open)) (try! (open-market)))
         (asserts! (is-eq DEX-TOKEN (contract-of ft)) ERR-TOKEN-NOT-AUTH)
         (asserts! (var-get open) ERR-MARKET-CLOSED)
-        (asserts! (> ubtc u4) ERR-STX-NON-POSITIVE)
+        (asserts! (>= ubtc u4) ERR-STX-NON-POSITIVE)
         (let (
               (in-info (unwrap! (get-in ubtc) ERR-FETCHING-BUY-INFO))
               (total-stx (get total-stx in-info))
@@ -175,11 +175,10 @@
             (k (* total-ft total-stk))
             (new-ft (+ total-ft amount))
             (new-stk (/ k new-ft))
-            (stx-ouk (- (- total-stk new-stk) u1))
-            (stx-out (if (>= stx-ouk u4) stx-ouk u0))
+            (stx-out (if (>= total-stk (+ new-stk u5)) (- (- total-stk new-stk) u1) u0))
             (feek (/ (* stx-out u2) u100))
             (fee (if (>= feek u3) feek u3))
-            (stx-to-receiver (- stx-out fee)))
+            (stx-to-receiver (if (>= stx-out fee) (- stx-out fee) u0)))
         (ok {
              total-stx: total-stx,
              total-stk: total-stk,
