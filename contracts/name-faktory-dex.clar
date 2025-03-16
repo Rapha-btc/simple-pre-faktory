@@ -114,7 +114,7 @@
             (k (* total-ft total-stk))
             (feek (/ (* ubtc u2) u100))
             (fee (if (>= feek u3) feek u3)) 
-            (stx-in (- ubtc fee))
+            (stx-in (if (> ubtc fee) (- ubtc fee) u0))
             (new-stk (+ total-stk stx-in))
             (new-ft (/ k new-stk))
             (tokens-out (- total-ft new-ft))
@@ -178,7 +178,7 @@
             (stx-out (if (>= total-stk (+ new-stk u5)) (- (- total-stk new-stk) u1) u0))
             (feek (/ (* stx-out u2) u100))
             (fee (if (>= feek u3) feek u3))
-            (stx-to-receiver (if (>= stx-out fee) (- stx-out fee) u0)))
+            (stx-to-receiver (if (> stx-out fee) (- stx-out fee) u0)))
         (ok {
              total-stx: total-stx,
              total-stk: total-stk,
