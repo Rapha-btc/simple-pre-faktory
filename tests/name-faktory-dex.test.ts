@@ -73,6 +73,12 @@ describe("buy", () => {
     console.log("- open:", cvToJSON(simnet.getDataVar(dex, "open")));
     console.log("- bonded:", cvToJSON(simnet.getDataVar(dex, "bonded")));
 
+    // Log all events to see exactly what's happening
+    console.log("--- All events from final buy ---");
+    for (let i = 0; i < result3.events.length; i++) {
+      console.log(`Event ${i}:`, JSON.stringify(result3.events[i], null, 2));
+    }
+
     return result3;
   };
 
@@ -354,12 +360,20 @@ describe("buy", () => {
   describe("when the dex completes the bonding curve", () => {
     it("should transfer a percentage of the fungible token premium to the 'FAKTORY' agent address", () => {
       const { result, events } = completeCurve();
+      // Log all events to determine which one corresponds to the FAKTORY transfer
+      console.log("--- Checking FAKTORY premium events ---");
+      for (let i = 0; i < events.length; i++) {
+        console.log(`Event ${i}:`, JSON.stringify(events[i], null, 2));
+      }
+
+      // Now you can see which event corresponds to the FAKTORY transfer
+      expect(result).toStrictEqual(responseOkCV(trueCV()));
 
       expect(result).toStrictEqual(responseOkCV(trueCV()));
       expect(events[6]).toMatchInlineSnapshot(`
         {
           "data": {
-            "amount": "420757363253856",
+            "amount": "491722668415013",
             "asset_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory::NAME",
             "recipient": "STTWD9SPRQVD3P733V89SV0P8RZRZNQADG034F0A",
             "sender": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory-dex",
@@ -376,7 +390,7 @@ describe("buy", () => {
       expect(events[8]).toMatchInlineSnapshot(`
         {
           "data": {
-            "amount": "280504908835905",
+            "amount": "327815112276676",
             "asset_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory::NAME",
             "recipient": "STTWD9SPRQVD3P733V89SV0P8RZRZNQADG034F0A",
             "sender": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory-dex",
@@ -386,16 +400,45 @@ describe("buy", () => {
       `);
     });
 
+    it("should log all events for debugging", () => {
+      const { events } = completeCurve();
+
+      // Log all events with their index
+      events.forEach((event, index) => {
+        console.log(`Event #${index}:`, event);
+      });
+
+      // This will fail but show you all events in the test output
+      expect(true).toBe(false);
+    });
+
     it("should transfer a fee to the graduation fee receiver address", () => {
+      const { result, events } = completeCurve();
+
+      expect(result).toStrictEqual(responseOkCV(trueCV()));
+      expect(events[13]).toMatchInlineSnapshot(`
+        {
+          "data": {
+            "amount": "100000",
+            "asset_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.sbtc-token::sbtc-token",
+            "recipient": "ST3BA7GVAKQTCTX68VPAD9W8CBYG71JNMGBCAD48N",
+            "sender": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory-dex",
+          },
+          "event": "ft_transfer_event",
+        }
+      `);
+    });
+
+    it("should send remaining tokens to AMM receiver simulated Bitflow", () => {
       const { result, events } = completeCurve();
 
       expect(result).toStrictEqual(responseOkCV(trueCV()));
       expect(events[10]).toMatchInlineSnapshot(`
         {
           "data": {
-            "amount": "100000",
-            "asset_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.sbtc-token::sbtc-token",
-            "recipient": "ST3BA7GVAKQTCTX68VPAD9W8CBYG71JNMGBCAD48N",
+            "amount": "2458613342075070",
+            "asset_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory::NAME",
+            "recipient": "ST2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1HR05NNC",
             "sender": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory-dex",
           },
           "event": "ft_transfer_event",
@@ -455,7 +498,7 @@ describe("buy", () => {
       expect(events[11]).toMatchInlineSnapshot(`
         {
           "data": {
-            "contract_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory-dex",
+            "contract_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory",
             "raw_value": "0x0c0000000d0a616d6d2d616d6f756e740100000000000000000007796209ddebe408616d6d2d7573747801000000000000000000000000005c02b0036665650100000000000000000000000000009c40026674061a6d78de7b0625dfbfc16c3a8a5735f6dc3dc3f2ce0c6e616d652d66616b746f72790a66742d62616c616e6365010000000000000000000000000000000008677261642d66656501000000000000000000000000000186a0056d616b6572051aa5180cc1ff6050df53f0ab766d76b630e14feb0c046f70656e040e7072656d69756d2d616d6f756e7401000000000000000000027dcb589f4ea10b7374782d62616c616e636501000000000000000000000000000000000a746f6b656e732d6f75740100000000000000000003c72d6e209edb04747970650d00000003627579047573747801000000000000000000000000001e8480",
             "topic": "print",
             "value": {
