@@ -85,7 +85,6 @@
 (define-constant ERR-NOTHING-TO-CLAIM (err u304))
 (define-constant ERR-NOT-AUTHORIZED (err u305))
 (define-constant ERR-WRONG-TOKEN (err u307))
-(define-constant ERR-NOT-EXPIRED (err u309))
 (define-constant ERR-CONTRACT-INSUFFICIENT-FUNDS (err u311))
 (define-constant ERR-INVALID-SEAT-COUNT (err u313))
 (define-constant ERR-REMOVING-HOLDER (err u316))

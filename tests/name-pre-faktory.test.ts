@@ -278,7 +278,7 @@ describe("refund", () => {
     expect(refund).toStrictEqual(responseErrorCV(uintCV(302)));
   });
 
-  it("should only allow refunding if period 1 expired", () => {
+  it("should only allow refunding if period 1 expired - Rafa removed period 1 - refund ok true then not seat owner anymore", () => {
     const { result } = simnet.callPublicFn(
       "name-pre-faktory",
       "buy-up-to",
@@ -293,7 +293,7 @@ describe("refund", () => {
       [],
       address1
     );
-    expect(refundBeforeExpire).toStrictEqual(responseErrorCV(uintCV(309)));
+    expect(refundBeforeExpire).toStrictEqual(responseOkCV(trueCV())); // (responseErrorCV(uintCV(309)));
     simnet.mineEmptyBurnBlocks(2100);
 
     const { result: refundAfterExpire } = simnet.callPublicFn(
@@ -302,7 +302,7 @@ describe("refund", () => {
       [],
       address1
     );
-    expect(refundAfterExpire).toStrictEqual(responseOkCV(trueCV()));
+    expect(refundAfterExpire).toStrictEqual(responseErrorCV(uintCV(302))); // (responseOkCV(trueCV()));
   });
 
   it("should transfer back the invested usbtc", () => {

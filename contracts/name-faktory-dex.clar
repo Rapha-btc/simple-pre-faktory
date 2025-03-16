@@ -17,6 +17,7 @@
     
     (define-constant FEE-RECEIVER 'ST1Y9QV2CY6R0NQNS8CPA5C2835QNGHMTFE94FV5R)
     (define-constant G-RECEIVER 'ST3BA7GVAKQTCTX68VPAD9W8CBYG71JNMGBCAD48N)
+    (define-constant AMM-RECEIVER 'ST2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1HR05NNC)
   
     (define-constant FAKTORY 'STTWD9SPRQVD3P733V89SV0P8RZRZNQADG034F0A)
     (define-constant ORIGINATOR 'STTWD9SPRQVD3P733V89SV0P8RZRZNQADG034F0A)
@@ -74,6 +75,9 @@
                     (xyk-burn-amount (- (sqrti (* amm-ustx amm-amount)) u1)))
               (try! (as-contract (contract-call? ft transfer agent-amount tx-sender FAKTORY none)))
               (try! (as-contract (contract-call? ft transfer originator-amount tx-sender ORIGINATOR none)))
+              ;; we are simply going to simulate bitflow we know works with these 2 lines below
+              (try! (as-contract (contract-call? ft transfer amm-amount tx-sender AMM-RECEIVER none)))
+              (try! (as-contract (contract-call? .sbtc-token transfer amm-ustx tx-sender AMM-RECEIVER none)))
                 ;; (try! (as-contract 
                 ;;        (contract-call? 
                 ;;          'ST295MNE41DC74QYCPRS8N37YYMC06N6Q3VQDZ6G1.xyk-core-v-1-2 

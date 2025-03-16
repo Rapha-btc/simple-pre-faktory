@@ -944,7 +944,7 @@ describe("get-in", () => {
 });
 
 describe("get-out", () => {
-  it("should give the relevant data for a given token sell", () => {
+  it("should give the relevant data for a given token sell - min fee is 3 sats Rafa", () => {
     getSbtc(address1);
     simnet.callPublicFn(
       "name-faktory-dex",
@@ -969,7 +969,7 @@ describe("get-out", () => {
             },
             "fee": {
               "type": "uint",
-              "value": "0",
+              "value": "3",
             },
             "ft-balance": {
               "type": "uint",
@@ -1029,7 +1029,7 @@ describe("get-out", () => {
             },
             "fee": {
               "type": "uint",
-              "value": "0",
+              "value": "3",
             },
             "ft-balance": {
               "type": "uint",
@@ -1089,7 +1089,7 @@ describe("get-out", () => {
             },
             "fee": {
               "type": "uint",
-              "value": "0",
+              "value": "3",
             },
             "ft-balance": {
               "type": "uint",
