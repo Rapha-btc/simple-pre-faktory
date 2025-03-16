@@ -357,17 +357,10 @@ describe("buy", () => {
     `);
   });
 
+  // useful perhaps: https://stxer.xyz/simulations/mainnet/8e1c471271e7b86a69ea341b0f452982
   describe("when the dex completes the bonding curve", () => {
     it("should transfer a percentage of the fungible token premium to the 'FAKTORY' agent address", () => {
       const { result, events } = completeCurve();
-      // Log all events to determine which one corresponds to the FAKTORY transfer
-      console.log("--- Checking FAKTORY premium events ---");
-      for (let i = 0; i < events.length; i++) {
-        console.log(`Event ${i}:`, JSON.stringify(events[i], null, 2));
-      }
-
-      // Now you can see which event corresponds to the FAKTORY transfer
-      expect(result).toStrictEqual(responseOkCV(trueCV()));
 
       expect(result).toStrictEqual(responseOkCV(trueCV()));
       expect(events[6]).toMatchInlineSnapshot(`
@@ -400,16 +393,38 @@ describe("buy", () => {
       `);
     });
 
-    it("should log all events for debugging", () => {
-      const { events } = completeCurve();
+    it("should send remaining tokens to AMM receiver", () => {
+      const { result, events } = completeCurve();
 
-      // Log all events with their index
-      events.forEach((event, index) => {
-        console.log(`Event #${index}:`, event);
-      });
+      expect(result).toStrictEqual(responseOkCV(trueCV()));
+      expect(events[10]).toMatchInlineSnapshot(`
+        {
+          "data": {
+            "amount": "2458613342075070",
+            "asset_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory::NAME",
+            "recipient": "ST2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1HR05NNC",
+            "sender": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory-dex",
+          },
+          "event": "ft_transfer_event",
+        }
+      `);
+    });
 
-      // This will fail but show you all events in the test output
-      expect(true).toBe(false);
+    it("should transfer AMM sats to AMM receiver", () => {
+      const { result, events } = completeCurve();
+
+      expect(result).toStrictEqual(responseOkCV(trueCV()));
+      expect(events[12]).toMatchInlineSnapshot(`
+        {
+          "data": {
+            "amount": "5001000",
+            "asset_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.sbtc-token::sbtc-token",
+            "recipient": "ST2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1HR05NNC",
+            "sender": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory-dex",
+          },
+          "event": "ft_transfer_event",
+        }
+      `);
     });
 
     it("should transfer a fee to the graduation fee receiver address", () => {
@@ -422,23 +437,6 @@ describe("buy", () => {
             "amount": "100000",
             "asset_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.sbtc-token::sbtc-token",
             "recipient": "ST3BA7GVAKQTCTX68VPAD9W8CBYG71JNMGBCAD48N",
-            "sender": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory-dex",
-          },
-          "event": "ft_transfer_event",
-        }
-      `);
-    });
-
-    it("should send remaining tokens to AMM receiver simulated Bitflow", () => {
-      const { result, events } = completeCurve();
-
-      expect(result).toStrictEqual(responseOkCV(trueCV()));
-      expect(events[10]).toMatchInlineSnapshot(`
-        {
-          "data": {
-            "amount": "2458613342075070",
-            "asset_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory::NAME",
-            "recipient": "ST2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1HR05NNC",
             "sender": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory-dex",
           },
           "event": "ft_transfer_event",
@@ -495,25 +493,25 @@ describe("buy", () => {
       const { result, events } = completeCurve();
 
       expect(result).toStrictEqual(responseOkCV(trueCV()));
-      expect(events[11]).toMatchInlineSnapshot(`
+      expect(events[14]).toMatchInlineSnapshot(`
         {
           "data": {
-            "contract_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory",
-            "raw_value": "0x0c0000000d0a616d6d2d616d6f756e740100000000000000000007796209ddebe408616d6d2d7573747801000000000000000000000000005c02b0036665650100000000000000000000000000009c40026674061a6d78de7b0625dfbfc16c3a8a5735f6dc3dc3f2ce0c6e616d652d66616b746f72790a66742d62616c616e6365010000000000000000000000000000000008677261642d66656501000000000000000000000000000186a0056d616b6572051aa5180cc1ff6050df53f0ab766d76b630e14feb0c046f70656e040e7072656d69756d2d616d6f756e7401000000000000000000027dcb589f4ea10b7374782d62616c616e636501000000000000000000000000000000000a746f6b656e732d6f75740100000000000000000003c72d6e209edb04747970650d00000003627579047573747801000000000000000000000000001e8480",
+            "contract_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory-dex",
+            "raw_value": "0x0c0000000d0a616d6d2d616d6f756e740100000000000000000008bc1886e4f8be08616d6d2d7573747801000000000000000000000000004c4f28036665650100000000000000000000000000004a38026674061a6d78de7b0625dfbfc16c3a8a5735f6dc3dc3f2ce0c6e616d652d66616b746f72790a66742d62616c616e6365010000000000000000000000000000000008677261642d66656501000000000000000000000000000186a0056d616b6572051aa5180cc1ff6050df53f0ab766d76b630e14feb0c046f70656e040e7072656d69756d2d616d6f756e740100000000000000000002e95d824c52e90b7374782d62616c616e636501000000000000000000000000000000000a746f6b656e732d6f7574010000000000000000000218e4c76c8db904747970650d00000003627579047573747801000000000000000000000000000e7ef0",
             "topic": "print",
             "value": {
               "data": {
                 "amm-amount": {
                   "type": 1,
-                  "value": 2103786816269284n,
+                  "value": 2458613342075070n,
                 },
                 "amm-ustx": {
                   "type": 1,
-                  "value": 6030000n,
+                  "value": 5001000n,
                 },
                 "fee": {
                   "type": 1,
-                  "value": 40000n,
+                  "value": 19000n,
                 },
                 "ft": {
                   "address": {
@@ -550,7 +548,7 @@ describe("buy", () => {
                 },
                 "premium-amount": {
                   "type": 1,
-                  "value": 701262272089761n,
+                  "value": 819537780691689n,
                 },
                 "stx-balance": {
                   "type": 1,
@@ -558,7 +556,7 @@ describe("buy", () => {
                 },
                 "tokens-out": {
                   "type": 1,
-                  "value": 1063422865219291n,
+                  "value": 590320830811577n,
                 },
                 "type": {
                   "data": "buy",
@@ -566,7 +564,7 @@ describe("buy", () => {
                 },
                 "ustx": {
                   "type": 1,
-                  "value": 2000000n,
+                  "value": 950000n,
                 },
               },
               "type": 12,
