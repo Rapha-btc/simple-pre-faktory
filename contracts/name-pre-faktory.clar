@@ -287,9 +287,15 @@
 ;; Read only functions
 (define-read-only (get-max-seats-allowed)
     (let (
-        (seats-remaining (- SEATS (var-get total-seats-taken)))    ;; 13 seats left
-        (users-remaining (- MIN-USERS (var-get total-users)))      ;; 9 users needed
-        (max-possible (+ (- seats-remaining users-remaining) u1))) ;; (13 - 9) + 1 = 5 seats possible
+        (total-users-now (var-get total-users))
+        (seats-remaining (- SEATS (var-get total-seats-taken)))
+        ;; Check if we've already met the minimum users requirement
+        (users-remaining (if (>= total-users-now MIN-USERS)
+                           u0  ;; No more users needed
+                           (- MIN-USERS total-users-now)))
+        (max-possible (if (>= total-users-now MIN-USERS)
+                           seats-remaining  ;; No more users needed
+                           (+ (- seats-remaining users-remaining) u1))))
         (if (>= max-possible MAX-SEATS-PER-USER)
             MAX-SEATS-PER-USER
             max-possible)))
