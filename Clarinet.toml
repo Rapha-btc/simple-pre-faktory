@@ -20,11 +20,6 @@ path = 'contracts/faktory-trait-v1.clar'
 clarity_version = 2
 epoch = 2.5
 
-[contracts.main-dex]
-path = 'contracts/main-dex.clar'
-clarity_version = 2
-epoch = 2.5
-
 [contracts.name-faktory]
 path = 'contracts/name-faktory.clar'
 clarity_version = 2

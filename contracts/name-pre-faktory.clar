@@ -371,11 +371,11 @@
         (asserts! (is-eq contract-caller DEX-DAO) ERR-NOT-AUTHORIZED)
         (var-set accelerated-vesting true) 
         (var-set final-airdrop-mode true)
-        (print {
-            type: "bonded",
-            token-contract: TOKEN-DAO,
-            bonded-height: burn-block-height,
-        }) 
+        ;; (print {
+        ;;     type: "bonded",
+        ;;     token-contract: TOKEN-DAO,
+        ;;     bonded-height: burn-block-height,
+        ;; }) 
         (ok true)))
 
 ;; Simplified Fee Distribution System
