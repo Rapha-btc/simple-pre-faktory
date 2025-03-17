@@ -16,6 +16,12 @@ genesis:
     - name: wallet_10
       address: ST38KBGBJ34TPJCHB03TRN1X1DGASTSGGQPZD74WZ
       balance: "100000000000000"
+    - name: wallet_11
+      address: ST15W5Q9ABDTMAT7QQG01VTV74NQ7F2QFC4JY1SWQ
+      balance: "100000000000000"
+    - name: wallet_12
+      address: ST1YRGAZKBQZ35EEYEZCBAMNHN66J882N4937NTYH
+      balance: "100000000000000"
     - name: wallet_2
       address: ST2CY5V39NHDPWSXMW9QDT3HC3GD6Q6XX4CFRK9AG
       balance: "100000000000000"

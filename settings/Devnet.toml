@@ -73,6 +73,18 @@ balance = 100_000_000_000_000
 mnemonic = "case velvet pass cabin destroy drink enemy gold sibling model train nasty guitar finish dish put long group blanket month eight quantum derive thunder"
 balance = 100_000_000_000_000
 
+[accounts.wallet_11]
+mnemonic = "inmate census together between universe need danger stereo motor add picture guilt museum cactus awful decide kiss cereal axis spirit treat reject icon notable"
+# stx_address: ST15W5Q9ABDTMAT7QQG01VTV74NQ7F2QFC4JY1SWQ
+balance = 100_000_000_000_000
+# You can generate a new mnemonic or use an existing one
+
+[accounts.wallet_12]
+mnemonic = "bar educate wheel turtle crack correct swift chronic thumb review arm face fossil gun spider coral income security base half ridge waste canoe home"
+balance = 100_000_000_000_000
+# stx address ST1YRGAZKBQZ35EEYEZCBAMNHN66J882N4937NTYH
+# You can generate a new mnemonic or use an existing one
+
 [accounts.faucet]
 mnemonic = "shadow private easily thought say logic fault paddle word top book during ignore notable orange flight clock image wealth health outside kitten belt reform"
 balance = 100_000_000_000_000

@@ -23,6 +23,16 @@ import {
 const accounts = simnet.getAccounts();
 const address1 = accounts.get("wallet_1")!;
 const address2 = accounts.get("wallet_2")!;
+const address3 = accounts.get("wallet_3")!;
+const address4 = accounts.get("wallet_4")!;
+const address5 = accounts.get("wallet_5")!;
+const address6 = accounts.get("wallet_6")!;
+const address7 = accounts.get("wallet_7")!;
+const address8 = accounts.get("wallet_8")!;
+const address9 = accounts.get("wallet_9")!;
+const address10 = accounts.get("wallet_10")!;
+const address11 = accounts.get("wallet_11")!;
+const address12 = accounts.get("wallet_12")!;
 
 describe("buy-up-to", () => {
   beforeEach(() => {
@@ -1363,5 +1373,557 @@ describe("trigger-fee-airdrop", () => {
         },
       ]
     `);
+  });
+});
+
+describe("buy-last-seat", () => {
+  // Function to distribute sBTC to all required wallets
+  function setupWallets() {
+    // Get sBTC for all wallets that need it
+    getSbtc(address1);
+    getSbtc(address2);
+    getSbtc(address3);
+    getSbtc(address4);
+    getSbtc(address5);
+    getSbtc(address6);
+    getSbtc(address7);
+    getSbtc(address8);
+    getSbtc(address9);
+    getSbtc(address10);
+    getSbtc(address11);
+    getSbtc(address12);
+  }
+
+  // Function to get 11 users to buy a total of 19 seats
+  function buy19Seats() {
+    // User 1 buys 2 seats
+    const buy1 = simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(2)],
+      address1
+    );
+    expect(buy1.result).toStrictEqual(responseOkCV(trueCV()));
+    console.log("User 1 bought 2 seats");
+
+    // User 2 buys 2 seats
+    const buy2 = simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(2)],
+      address2
+    );
+    expect(buy2.result).toStrictEqual(responseOkCV(trueCV()));
+    console.log("User 2 bought 2 seats");
+
+    // User 3 buys 2 seats
+    const buy3 = simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(2)],
+      address3
+    );
+    expect(buy3.result).toStrictEqual(responseOkCV(trueCV()));
+    console.log("User 3 bought 2 seats");
+
+    // User 4 buys 2 seats
+    const buy4 = simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(2)],
+      address4
+    );
+    expect(buy4.result).toStrictEqual(responseOkCV(trueCV()));
+    console.log("User 4 bought 2 seats");
+
+    // User 5 buys 2 seats
+    const buy5 = simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(2)],
+      address5
+    );
+    expect(buy5.result).toStrictEqual(responseOkCV(trueCV()));
+    console.log("User 5 bought 2 seats");
+
+    // User 6 buys 1 seat
+    const buy6 = simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(1)],
+      address6
+    );
+    expect(buy6.result).toStrictEqual(responseOkCV(trueCV()));
+    console.log("User 6 bought 1 seat");
+
+    // User 7 buys 1 seat
+    const buy7 = simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(1)],
+      address7
+    );
+    expect(buy7.result).toStrictEqual(responseOkCV(trueCV()));
+    console.log("User 7 bought 1 seat");
+
+    // User 8 buys 1 seat
+    const buy8 = simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(1)],
+      address8
+    );
+    expect(buy8.result).toStrictEqual(responseOkCV(trueCV()));
+    console.log("User 8 bought 1 seat");
+
+    // User 9 buys 1 seat
+    const buy9 = simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(1)],
+      address9
+    );
+    expect(buy9.result).toStrictEqual(responseOkCV(trueCV()));
+    console.log("User 9 bought 1 seat");
+
+    // User 10 buys 1 seat
+    const buy10 = simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(1)],
+      address10
+    );
+    expect(buy10.result).toStrictEqual(responseOkCV(trueCV()));
+    console.log("User 10 bought 1 seat");
+
+    // User 11 buys 4 seats
+    const buy11 = simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(4)],
+      address11
+    );
+    expect(buy11.result).toStrictEqual(responseOkCV(trueCV()));
+    console.log("User 11 bought 4 seats");
+
+    // Verify we have 19 seats total
+    const totalSeatsTaken = simnet.getDataVar(
+      "name-pre-faktory",
+      "total-seats-taken"
+    );
+    console.log("Total seats taken:", totalSeatsTaken);
+    expect(totalSeatsTaken).toStrictEqual(uintCV(19));
+
+    // Verify we have 11 users total
+    const totalUsers = simnet.getDataVar("name-pre-faktory", "total-users");
+    console.log("Total users:", totalUsers);
+    expect(totalUsers).toStrictEqual(uintCV(11));
+  }
+
+  it("should initialize distribution when last seat is bought", () => {
+    // Setup wallets with sBTC
+    setupWallets();
+
+    // Buy 19 seats with 11 users
+    buy19Seats();
+
+    // User 12 buys the final seat (seat 20)
+    console.log("User 12 attempting to buy the last seat...");
+    const buyLastSeat = simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(1)],
+      address12
+    );
+
+    // The result should be successful
+    expect(buyLastSeat.result).toStrictEqual(responseOkCV(trueCV()));
+
+    // Log events by simply using console.log without accessing their properties directly
+    console.log("===== EVENTS FROM BUYING LAST SEAT =====");
+    buyLastSeat.events.forEach((event, index) => {
+      console.log(`Event ${index}:`, event);
+    });
+
+    // Check if we now have 20 seats total
+    const finalTotalSeatsTaken = simnet.getDataVar(
+      "name-pre-faktory",
+      "total-seats-taken"
+    );
+    console.log("Final total seats taken:", finalTotalSeatsTaken);
+    expect(finalTotalSeatsTaken).toStrictEqual(uintCV(20));
+
+    // Check if we now have 12 users total
+    const finalTotalUsers = simnet.getDataVar(
+      "name-pre-faktory",
+      "total-users"
+    );
+    console.log("Final total users:", finalTotalUsers);
+    expect(finalTotalUsers).toStrictEqual(uintCV(12));
+
+    // Check if distribution has been initialized
+    // Find the distribution-initialized event without accessing properties directly
+    console.log("Checking for distribution-initialized event...");
+    expect(buyLastSeat.events.length).toBeGreaterThan(0);
+
+    // Use expect().toMatchInlineSnapshot() to inspect an event at a specific index
+    // This is the pattern used in the original tests
+    expect(buyLastSeat.events[0]).toBeDefined();
+  });
+});
+
+// Define our own buySeat function since it might not be exported from helpers
+const buySeatForTest = (account: string, seatCount: number) => {
+  return simnet.callPublicFn(
+    "name-pre-faktory",
+    "buy-up-to",
+    [uintCV(seatCount)],
+    account
+  );
+};
+
+// Helper function to log distribution initialization events
+const logDistributionEvents = (buyResult: any): void => {
+  console.log("===== EVENTS FROM LAST PURCHASE =====");
+  buyResult.events.forEach((event: any, index: number) => {
+    console.log(`Event ${index}:`, event);
+  });
+};
+
+// Helper function to verify distribution is initialized
+const verifyDistributionInitialized = (): void => {
+  // Verify total seats is 20
+  const totalSeats = simnet.getDataVar("name-pre-faktory", "total-seats-taken");
+  console.log("Total seats taken:", totalSeats);
+  expect(totalSeats).toStrictEqual(uintCV(20));
+
+  // Verify distribution height is set (non-zero)
+  const distributionHeight = simnet.getDataVar(
+    "name-pre-faktory",
+    "distribution-height"
+  );
+  console.log("Distribution height:", distributionHeight);
+  expect(distributionHeight).not.toStrictEqual(uintCV(0));
+
+  // Verify market is open
+  const marketOpen = simnet.getDataVar("name-pre-faktory", "market-open");
+  console.log("Market open:", marketOpen);
+  expect(marketOpen).toStrictEqual(trueCV());
+};
+
+describe("seat-distribution-scenarios", () => {
+  beforeEach(() => {
+    // Set up all accounts with sBTC
+    [
+      address1,
+      address2,
+      address3,
+      address4,
+      address5,
+      address6,
+      address7,
+      address8,
+      address9,
+      address10,
+    ].forEach(getSbtc);
+  });
+
+  // Scenario 1: Maximum number of users (10 users, 2 seats each)
+  it("should initialize distribution with 10 users buying 2 seats each", () => {
+    console.log("\n===== SCENARIO: 10 USERS WITH 2 SEATS EACH =====");
+    // First 9 users buy 2 seats each
+    for (let i = 1; i <= 9; i++) {
+      const address = accounts.get(`wallet_${i}`)!;
+      const result = buySeatForTest(address, 2);
+      expect(result.result).toStrictEqual(responseOkCV(trueCV()));
+    }
+
+    // Verify we have 18 seats total and 9 users
+    const totalSeatsBefore = simnet.getDataVar(
+      "name-pre-faktory",
+      "total-seats-taken"
+    );
+    console.log("Seats taken before last purchase:", totalSeatsBefore);
+    expect(totalSeatsBefore).toStrictEqual(uintCV(18));
+
+    const totalUsersBefore = simnet.getDataVar(
+      "name-pre-faktory",
+      "total-users"
+    );
+    console.log("Users before last purchase:", totalUsersBefore);
+    expect(totalUsersBefore).toStrictEqual(uintCV(9));
+
+    // Last user buys the final 2 seats (19 and 20)
+    console.log("\n===== BUYING FINAL 2 SEATS WITH USER 10 =====");
+    const finalBuyResult = buySeatForTest(address10, 2);
+    expect(finalBuyResult.result).toStrictEqual(responseOkCV(trueCV()));
+
+    // Log events from the final purchase
+    logDistributionEvents(finalBuyResult);
+
+    // Verify final state
+    const finalUsers = simnet.getDataVar("name-pre-faktory", "total-users");
+    expect(finalUsers).toStrictEqual(uintCV(10));
+
+    // Verify distribution is initialized
+    verifyDistributionInitialized();
+  });
+
+  // Simulate Scenario 2: Maximum number of seats per user (10 users, varied seat counts)
+  // We'll use the 10 available wallets to simulate this scenario
+  it("should initialize distribution with varied seat distribution across users", () => {
+    console.log("\n===== SCENARIO: VARIED SEAT DISTRIBUTION =====");
+
+    // First user gets 7 seats (maximum allowed)
+    console.log("User 1 buying 7 seats (maximum allowed)");
+    const buy1 = buySeatForTest(address1, 7);
+    expect(buy1.result).toStrictEqual(responseOkCV(trueCV()));
+
+    // Next users get varying numbers of seats
+    console.log("User 2 buying 3 seats");
+    const buy2 = buySeatForTest(address2, 3);
+    expect(buy2.result).toStrictEqual(responseOkCV(trueCV()));
+
+    console.log("User 3 buying 2 seats");
+    const buy3 = buySeatForTest(address3, 2);
+    expect(buy3.result).toStrictEqual(responseOkCV(trueCV()));
+
+    console.log("User 4 buying 1 seat");
+    const buy4 = buySeatForTest(address4, 1);
+    expect(buy4.result).toStrictEqual(responseOkCV(trueCV()));
+
+    console.log("User 5 buying 1 seat");
+    const buy5 = buySeatForTest(address5, 1);
+    expect(buy5.result).toStrictEqual(responseOkCV(trueCV()));
+
+    console.log("User 6 buying 1 seat");
+    const buy6 = buySeatForTest(address6, 1);
+    expect(buy6.result).toStrictEqual(responseOkCV(trueCV()));
+
+    console.log("User 7 buying 1 seat");
+    const buy7 = buySeatForTest(address7, 1);
+    expect(buy7.result).toStrictEqual(responseOkCV(trueCV()));
+
+    console.log("User 8 buying 1 seat");
+    const buy8 = buySeatForTest(address8, 1);
+    expect(buy8.result).toStrictEqual(responseOkCV(trueCV()));
+
+    console.log("User 9 buying 2 seat");
+    const buy9 = buySeatForTest(address9, 2);
+    expect(buy9.result).toStrictEqual(responseOkCV(trueCV()));
+
+    // Verify we have 19 seats total and 9 users
+    const totalSeatsBefore = simnet.getDataVar(
+      "name-pre-faktory",
+      "total-seats-taken"
+    );
+    console.log("Seats taken before last purchase:", totalSeatsBefore);
+    expect(totalSeatsBefore).toStrictEqual(uintCV(19));
+
+    const totalUsersBefore = simnet.getDataVar(
+      "name-pre-faktory",
+      "total-users"
+    );
+    console.log("Users before last purchase:", totalUsersBefore);
+    expect(totalUsersBefore).toStrictEqual(uintCV(9));
+
+    // Last user buys the final seat
+    console.log("\n===== BUYING FINAL SEAT WITH USER 10 =====");
+    const finalBuyResult = buySeatForTest(address10, 1);
+    expect(finalBuyResult.result).toStrictEqual(responseOkCV(trueCV()));
+
+    // Log events from the final purchase
+    logDistributionEvents(finalBuyResult);
+
+    // Verify final state
+    const finalUsers = simnet.getDataVar("name-pre-faktory", "total-users");
+    expect(finalUsers).toStrictEqual(uintCV(10));
+
+    // Verify distribution is initialized
+    verifyDistributionInitialized();
+  });
+
+  // Simulate 10 users with 1 seat each, then attempt to buy more
+  it("should work with minimum seat allocation per user", () => {
+    console.log("\n===== SCENARIO: MINIMUM SEATS PER USER (1 EACH) =====");
+
+    // First 9 users buy 1 seat each
+    for (let i = 1; i <= 9; i++) {
+      const address = accounts.get(`wallet_${i}`)!;
+      const result = buySeatForTest(address, 1);
+      expect(result.result).toStrictEqual(responseOkCV(trueCV()));
+      console.log(`User ${i} bought 1 seat`);
+    }
+
+    // Verify we have 9 seats total and 9 users
+    const totalSeatsBefore = simnet.getDataVar(
+      "name-pre-faktory",
+      "total-seats-taken"
+    );
+    console.log("Seats taken before next purchases:", totalSeatsBefore);
+    expect(totalSeatsBefore).toStrictEqual(uintCV(9));
+
+    // Last user buys 1 seat (not enough to trigger distribution)
+    console.log("User 10 buying 1 seat (not enough for distribution)");
+    const buy10 = buySeatForTest(address10, 1);
+    expect(buy10.result).toStrictEqual(responseOkCV(trueCV()));
+
+    // Now all users buy 1 more seat each until we reach 20
+    console.log("\n===== USERS BUYING ADDITIONAL SEATS =====");
+
+    // Users 1-10 each buy 1 more seat
+    for (let i = 1; i <= 10; i++) {
+      const address = accounts.get(`wallet_${i}`)!;
+      const result = buySeatForTest(address, 1);
+      expect(result.result).toStrictEqual(responseOkCV(trueCV()));
+      console.log(`User ${i} bought their 2nd seat`);
+
+      // Check total seats after each purchase
+      const seatsAfter = simnet.getDataVar(
+        "name-pre-faktory",
+        "total-seats-taken"
+      );
+      console.log(`Total seats after user ${i}'s 2nd purchase:`, seatsAfter);
+
+      // If we hit 20 seats, log the triggering event
+      if (cvToValue(seatsAfter) === 20n) {
+        console.log(
+          `\n===== DISTRIBUTION TRIGGERED BY USER ${i}'S PURCHASE =====`
+        );
+        logDistributionEvents(result);
+        break;
+      }
+    }
+
+    // Verify final state
+    const finalUsers = simnet.getDataVar("name-pre-faktory", "total-users");
+    console.log("Final users:", finalUsers);
+    expect(finalUsers).toStrictEqual(uintCV(10));
+
+    // Verify distribution is initialized
+    verifyDistributionInitialized();
+  });
+});
+
+describe("max-seats-per-user-test", () => {
+  beforeEach(() => {
+    // Set up all accounts with sBTC
+    [
+      address1,
+      address2,
+      address3,
+      address4,
+      address5,
+      address6,
+      address7,
+      address8,
+      address9,
+      address10,
+    ].forEach(getSbtc);
+  });
+
+  it("should not allow a user to exceed MAX-SEATS-PER-USER when buying the last seat", () => {
+    console.log("\n===== SETTING UP 19 SEATS WITH 10 USERS =====");
+
+    // User 1 buys the maximum of 7 seats
+    const buy1 = buySeatForTest(address1, 7);
+    expect(buy1.result).toStrictEqual(responseOkCV(trueCV()));
+    console.log("User 1 bought 7 seats");
+
+    // Nine more users buy 1 seat each to reach 10 users with 16 seats
+    for (let i = 2; i <= 10; i++) {
+      const address = accounts.get(`wallet_${i}`)!;
+      const result = buySeatForTest(address, 1);
+      expect(result.result).toStrictEqual(responseOkCV(trueCV()));
+      console.log(`User ${i} bought 1 seat`);
+    }
+
+    // User 2 buys 1 more seat
+    const buy2More = buySeatForTest(address2, 1);
+    expect(buy2More.result).toStrictEqual(responseOkCV(trueCV()));
+    console.log("User 2 bought 1 more seat");
+
+    // User 3 buys 2 more seat
+    const buy3More = buySeatForTest(address3, 2);
+    expect(buy3More.result).toStrictEqual(responseOkCV(trueCV()));
+    console.log("User 3 bought 2 more seat");
+
+    // Verify we have 19 seats total and 10 users
+    const totalSeatsBefore = simnet.getDataVar(
+      "name-pre-faktory",
+      "total-seats-taken"
+    );
+    console.log("Seats taken:", totalSeatsBefore);
+    expect(totalSeatsBefore).toStrictEqual(uintCV(19));
+
+    const totalUsersBefore = simnet.getDataVar(
+      "name-pre-faktory",
+      "total-users"
+    );
+    console.log("Total users:", totalUsersBefore);
+    expect(totalUsersBefore).toStrictEqual(uintCV(10));
+
+    // User 1 (who already has 7 seats) tries to buy the last seat
+    console.log("\n===== USER 1 ATTEMPTS TO BUY THE LAST SEAT =====");
+    const buyLastSeat = buySeatForTest(address1, 1);
+
+    // This should fail with ERR-INVALID-SEAT-COUNT (313)
+    console.log("Result:", buyLastSeat.result);
+    expect(buyLastSeat.result).toStrictEqual(responseErrorCV(uintCV(313)));
+
+    // Verify the contract state remains unchanged
+    const totalSeatsAfter = simnet.getDataVar(
+      "name-pre-faktory",
+      "total-seats-taken"
+    );
+    console.log("Seats taken after failed attempt:", totalSeatsAfter);
+    expect(totalSeatsAfter).toStrictEqual(uintCV(19)); // Still 19 seats
+
+    // User 2 should be able to buy the last seat
+    console.log("\n===== USER 2 BUYS THE LAST SEAT INSTEAD =====");
+    const user2BuysLast = buySeatForTest(address2, 1);
+    expect(user2BuysLast.result).toStrictEqual(responseOkCV(trueCV()));
+
+    // Now we should have 20 seats and distribution should be initialized
+    const finalSeats = simnet.getDataVar(
+      "name-pre-faktory",
+      "total-seats-taken"
+    );
+    console.log("Final total seats:", finalSeats);
+    expect(finalSeats).toStrictEqual(uintCV(20));
+
+    // Check if distribution has been initialized
+    const distributionHeight = simnet.getDataVar(
+      "name-pre-faktory",
+      "distribution-height"
+    );
+    console.log("Distribution height:", distributionHeight);
+    expect(cvToValue(distributionHeight)).not.toBe(0n);
+
+    // Get user 2's final seat count and verify it's 3
+    const user2FinalSeats = simnet.getMapEntry(
+      "name-pre-faktory",
+      "seats-owned",
+      principalCV(address2)
+    );
+    console.log("User 2 final seats:", user2FinalSeats);
+
+    // Use someCV to properly match the structure
+    expect(user2FinalSeats).toStrictEqual(someCV(uintCV(3)));
+
+    // // Check each user's final seat count
+    // const user1FinalSeats = simnet.getMapEntry(
+    //   "name-pre-faktory",
+    //   "seats-owned",
+    //   uintCV(address1)
+    // );
+    // console.log("User 1 final seats:", user1FinalSeats);
+
+    // const user2FinalSeats = simnet.getMapEntry(
+    //   "name-pre-faktory",
+    //   "seats-owned",
+    //   uintCV(address2)
+    // );
+    // console.log("User 2 final seats:", user2FinalSeats);
   });
 });

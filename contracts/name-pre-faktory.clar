@@ -145,16 +145,19 @@
     (let (
         (current-seats (var-get total-seats-taken))
         (user-seats (default-to u0 (map-get? seats-owned tx-sender)))
-        (max-total-allowed (get-max-seats-allowed))
-        (max-additional-allowed (if (>= user-seats max-total-allowed)
-                                  u0
-                                  (- max-total-allowed user-seats)))
+        (max-total-allowed (get-max-seats-allowed)) ;; anyone can buy this if min users >= 10
+        (max-additional-allowed (if (>= (var-get total-users) MIN-USERS)
+                                    max-total-allowed ;; if quota of users is attained, anyone can buy
+                                    (if (>= user-seats max-total-allowed)
+                                        u0
+                                        (- max-total-allowed user-seats))))
         (actual-seats (if (> seat-count max-additional-allowed) 
                         max-additional-allowed
                         seat-count)))
         
         (asserts! (is-eq (var-get distribution-height) u0) ERR-DISTRIBUTION-ALREADY-SET)
         (asserts! (> actual-seats u0) ERR-INVALID-SEAT-COUNT)
+        (asserts! (<= (+ user-seats actual-seats) MAX-SEATS-PER-USER) ERR-INVALID-SEAT-COUNT)
         (asserts! (< current-seats SEATS) ERR-NO-SEATS-LEFT)
         
         ;; Process payment
