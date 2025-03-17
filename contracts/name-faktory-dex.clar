@@ -71,7 +71,7 @@
                     (agent-amount (/ (* premium-amount u60) u100))
                     (originator-amount (- premium-amount agent-amount))
                     (amm-ustx (- new-stx GRAD-FEE))
-                    (xyk-pool-uri (default-to u"https://bitflow.finance" (try! (contract-call? ft get-token-uri))))
+                    (xyk-pool-uri (default-to u"https://faktory.fun/" (try! (contract-call? ft get-token-uri))))
                     (xyk-burn-amount (- (sqrti (* amm-ustx amm-amount)) u1)))
               (try! (as-contract (contract-call? ft transfer agent-amount tx-sender FAKTORY none)))
               (try! (as-contract (contract-call? ft transfer originator-amount tx-sender ORIGINATOR none)))

@@ -207,6 +207,7 @@
                     (print {
                         type: "refund",
                         user: tx-sender,
+                        seats-refunded: user-seats,
                         seat-holders: (var-get seat-holders),
                         total-seats-taken: (var-get total-seats-taken),
                         total-users: (var-get total-users),
@@ -363,7 +364,12 @@
     (begin
         (asserts! (is-eq contract-caller DEX-DAO) ERR-NOT-AUTHORIZED)
         (var-set accelerated-vesting true) 
-        (var-set final-airdrop-mode true) 
+        (var-set final-airdrop-mode true)
+        (print {
+            type: "bonded",
+            token-contract: TOKEN-DAO,
+            bonded-height: burn-block-height,
+        }) 
         (ok true)))
 
 ;; Simplified Fee Distribution System
