@@ -204,7 +204,6 @@
       (let ((is-prelaunch-allowing (unwrap-panic (contract-call? .name-pre-faktory is-market-open))))
         (asserts! (not (var-get bonded)) ERR-MARKET-CLOSED)
         (asserts! is-prelaunch-allowing ERR-MARKET-CLOSED)
-        (var-set stx-balance DEX-AMOUNT)
         (var-set open true)
         (ok true))
     )
@@ -213,6 +212,7 @@
       (begin
         (var-set fak-ustx FAK_STX)
         (var-set ft-balance u16000000000000000)
+        (var-set stx-balance DEX-AMOUNT) ;; this needs to be set in advance for first buy quotes
           (print { 
               type: "faktory-dex-trait-v1-1", 
               dexContract: (as-contract tx-sender),

@@ -328,8 +328,7 @@
     (ok {remainin-seats: (- SEATS (var-get total-seats-taken))}))
 
 (define-read-only (get-seats-owned (address principal))
-    (ok {seats-owned:
-    (> (default-to u0 (map-get? seats-owned address)) u0)}))
+    (ok {seats-owned: (default-to u0 (map-get? seats-owned address))}))
 
 (define-read-only (get-claimed-amount (address principal))
     (ok {claimed-amount:
