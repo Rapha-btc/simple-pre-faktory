@@ -64,6 +64,7 @@
 (define-data-var accelerated-vesting bool false)
 (define-data-var market-open bool false)
 (define-data-var governance-active bool false)
+(define-data-var acc-distributed uint u0)
 
 ;; Determined after multi-sig creation
 (define-constant TOKEN-DAO .name-faktory) ;; param
@@ -419,7 +420,6 @@
         (or (and cooldown-expired has-fees)    
             (and final-mode has-fees))))      
 
-(define-data-var acc-distributed uint u0)
 ;; Main airdrop function - anyone can call
 (define-public (trigger-fee-airdrop)
     (let ((total-fees (var-get accumulated-fees))
