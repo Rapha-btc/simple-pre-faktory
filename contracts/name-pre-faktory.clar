@@ -419,11 +419,13 @@
         (or (and cooldown-expired has-fees)    
             (and final-mode has-fees))))      
 
+(define-data-var acc-distributed uint u0)
 ;; Main airdrop function - anyone can call
 (define-public (trigger-fee-airdrop)
     (let ((total-fees (var-get accumulated-fees))
           (total-seats (var-get total-seats-taken))
-          (can-airdrop (can-trigger-airdrop)))
+          (can-airdrop (can-trigger-airdrop))
+          (acc-fees (var-get accumulated-fees)))
         
         ;; Check if airdrop can be triggered
         (asserts! can-airdrop (if (> total-fees u0) 
@@ -435,8 +437,14 @@
         (asserts! (> total-seats u0) ERR-TOTAL-SEATS-ZERO)
         
         ;; Distribute fees to all seat holders
+        (var-set acc-distributed u0)
         (map distribute-to-holder (var-get seat-holders))
         
+        (if (> (- acc-fees (var-get acc-distributed)) u0)
+                (try! (as-contract (contract-call? .sbtc-token 
+                                    transfer (- acc-fees (var-get acc-distributed)) tx-sender FAKTORY1 none)))
+            true)
+
         ;; Reset accumulated fees and update last airdrop height
         (var-set accumulated-fees u0)
         (var-set last-airdrop-height (some burn-block-height))
@@ -463,6 +471,7 @@
                 (match (as-contract (contract-call? .sbtc-token transfer user-share tx-sender holder none))
                     success
                         (begin 
+                            (var-set acc-distributed (+ (var-get acc-distributed) user-share))
                             (print {
                             type: "fee-distribution",
                             recipient: holder,
