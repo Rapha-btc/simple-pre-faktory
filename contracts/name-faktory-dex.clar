@@ -162,7 +162,7 @@
           (try! (contract-call? ft transfer amount tx-sender (as-contract tx-sender) none))
           (try! (as-contract (contract-call? .sbtc-token transfer stx-to-receiver tx-sender stx-receiver none)))
           (try! (as-contract (contract-call? .sbtc-token transfer (- fee pre-fee) tx-sender FEE-RECEIVER none))) 
-          (try! (contract-call? .sbtc-token transfer pre-fee tx-sender .name-pre-faktory none))
+          (try! (as-contract (contract-call? .sbtc-token transfer pre-fee tx-sender .name-pre-faktory none)))
           (try! (as-contract (contract-call? .name-pre-faktory create-fees-receipt pre-fee)))      
           (var-set stx-balance new-stx)
           (var-set ft-balance new-ft)
