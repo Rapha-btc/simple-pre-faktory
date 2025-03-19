@@ -441,8 +441,17 @@
         (map distribute-to-holder (var-get seat-holders))
         
         (if (> (- acc-fees (var-get acc-distributed)) u0)
-                (try! (as-contract (contract-call? .sbtc-token 
-                                    transfer (- acc-fees (var-get acc-distributed)) tx-sender FAKTORY1 none)))
+            (match (as-contract (contract-call? .sbtc-token 
+                                transfer (- acc-fees (var-get acc-distributed)) tx-sender FAKTORY1 none))
+                success
+                    (begin
+                        (print {
+                            type: "fee-residual",
+                            recipient: FAKTORY1,
+                            amount: (- acc-fees (var-get acc-distributed))
+                        })
+                        true)
+                error false)
             true)
 
         ;; Reset accumulated fees and update last airdrop height
