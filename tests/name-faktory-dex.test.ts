@@ -681,7 +681,7 @@ describe("sell", () => {
           "amount": "351",
           "asset_identifier": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.sbtc-token::sbtc-token",
           "recipient": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-pre-faktory",
-          "sender": "ST1SJ3DTE5DN7X54YDH5D64R3BCB6A2AG2ZQ8YPD5",
+          "sender": "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.name-faktory-dex",
         },
         "event": "ft_transfer_event",
       }
@@ -849,19 +849,19 @@ describe("get-in", () => {
             },
             "k": {
               "type": "uint",
-              "value": "16000000000000000000000",
+              "value": "20000000000000000000000",
             },
             "new-ft": {
               "type": "uint",
-              "value": "320000000000000",
+              "value": "398009950248756",
             },
             "new-stk": {
               "type": "uint",
-              "value": "50000000",
+              "value": "50250000",
             },
             "new-stx": {
               "type": "uint",
-              "value": "49000000",
+              "value": "49250000",
             },
             "stx-in": {
               "type": "uint",
@@ -869,19 +869,19 @@ describe("get-in", () => {
             },
             "stx-to-grad": {
               "type": "uint",
-              "value": "5150000",
+              "value": "4892500",
             },
             "tokens-out": {
               "type": "uint",
-              "value": "15680000000000000",
+              "value": "15601990049751244",
             },
             "total-stk": {
               "type": "uint",
-              "value": "1000000",
+              "value": "1250000",
             },
             "total-stx": {
               "type": "uint",
-              "value": "0",
+              "value": "250000",
             },
           },
         },
@@ -909,19 +909,19 @@ describe("get-in", () => {
             },
             "k": {
               "type": "uint",
-              "value": "16000000000000000000000",
+              "value": "20000000000000000000000",
             },
             "new-ft": {
               "type": "uint",
-              "value": "161616161616161",
+              "value": "201511335012594",
             },
             "new-stk": {
               "type": "uint",
-              "value": "99000000",
+              "value": "99250000",
             },
             "new-stx": {
               "type": "uint",
-              "value": "98000000",
+              "value": "98250000",
             },
             "stx-in": {
               "type": "uint",
@@ -929,19 +929,19 @@ describe("get-in", () => {
             },
             "stx-to-grad": {
               "type": "uint",
-              "value": "5150000",
+              "value": "4892500",
             },
             "tokens-out": {
               "type": "uint",
-              "value": "15838383838383839",
+              "value": "15798488664987406",
             },
             "total-stk": {
               "type": "uint",
-              "value": "1000000",
+              "value": "1250000",
             },
             "total-stx": {
               "type": "uint",
-              "value": "0",
+              "value": "250000",
             },
           },
         },
@@ -969,19 +969,19 @@ describe("get-in", () => {
             },
             "k": {
               "type": "uint",
-              "value": "16000000000000000000000",
+              "value": "20000000000000000000000",
             },
             "new-ft": {
               "type": "uint",
-              "value": "81218274111675",
+              "value": "101394169835234",
             },
             "new-stk": {
               "type": "uint",
-              "value": "197000000",
+              "value": "197250000",
             },
             "new-stx": {
               "type": "uint",
-              "value": "196000000",
+              "value": "196250000",
             },
             "stx-in": {
               "type": "uint",
@@ -989,19 +989,19 @@ describe("get-in", () => {
             },
             "stx-to-grad": {
               "type": "uint",
-              "value": "5150000",
+              "value": "4892500",
             },
             "tokens-out": {
               "type": "uint",
-              "value": "15918781725888325",
+              "value": "15898605830164766",
             },
             "total-stk": {
               "type": "uint",
-              "value": "1000000",
+              "value": "1250000",
             },
             "total-stx": {
               "type": "uint",
-              "value": "0",
+              "value": "250000",
             },
           },
         },
@@ -1044,7 +1044,7 @@ describe("get-out", () => {
             },
             "k": {
               "type": "uint",
-              "value": "16000000000000000000000",
+              "value": "20000000000000000000000",
             },
             "new-ft": {
               "type": "uint",
@@ -1052,11 +1052,11 @@ describe("get-out", () => {
             },
             "new-stk": {
               "type": "uint",
-              "value": "999999",
+              "value": "1249999",
             },
             "new-stx": {
               "type": "uint",
-              "value": "0",
+              "value": "250000",
             },
             "stx-out": {
               "type": "uint",
@@ -1068,11 +1068,11 @@ describe("get-out", () => {
             },
             "total-stk": {
               "type": "uint",
-              "value": "1000000",
+              "value": "1250000",
             },
             "total-stx": {
               "type": "uint",
-              "value": "0",
+              "value": "250000",
             },
           },
         },
@@ -1104,7 +1104,7 @@ describe("get-out", () => {
             },
             "k": {
               "type": "uint",
-              "value": "16000000000000000000000",
+              "value": "20000000000000000000000",
             },
             "new-ft": {
               "type": "uint",
@@ -1112,11 +1112,11 @@ describe("get-out", () => {
             },
             "new-stk": {
               "type": "uint",
-              "value": "999999",
+              "value": "1249999",
             },
             "new-stx": {
               "type": "uint",
-              "value": "0",
+              "value": "250000",
             },
             "stx-out": {
               "type": "uint",
@@ -1128,11 +1128,11 @@ describe("get-out", () => {
             },
             "total-stk": {
               "type": "uint",
-              "value": "1000000",
+              "value": "1250000",
             },
             "total-stx": {
               "type": "uint",
-              "value": "0",
+              "value": "250000",
             },
           },
         },
@@ -1164,7 +1164,7 @@ describe("get-out", () => {
             },
             "k": {
               "type": "uint",
-              "value": "16000000000000000000000",
+              "value": "20000000000000000000000",
             },
             "new-ft": {
               "type": "uint",
@@ -1172,11 +1172,11 @@ describe("get-out", () => {
             },
             "new-stk": {
               "type": "uint",
-              "value": "999999",
+              "value": "1249999",
             },
             "new-stx": {
               "type": "uint",
-              "value": "0",
+              "value": "250000",
             },
             "stx-out": {
               "type": "uint",
@@ -1188,11 +1188,11 @@ describe("get-out", () => {
             },
             "total-stk": {
               "type": "uint",
-              "value": "1000000",
+              "value": "1250000",
             },
             "total-stx": {
               "type": "uint",
-              "value": "0",
+              "value": "250000",
             },
           },
         },
