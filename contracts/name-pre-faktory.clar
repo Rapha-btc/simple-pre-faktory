@@ -438,32 +438,33 @@
         
         ;; Distribute fees to all seat holders
         (var-set acc-distributed u0)
-        (map distribute-to-holder (var-get seat-holders))
-        
-        (if (> (- acc-fees (var-get acc-distributed)) u0)
-            (match (as-contract (contract-call? .sbtc-token 
-                                transfer (- acc-fees (var-get acc-distributed)) tx-sender FAKTORY1 none))
-                success
-                    (begin
-                        (print {
-                            type: "fee-residual",
-                            recipient: FAKTORY1,
-                            amount: (- acc-fees (var-get acc-distributed))
-                        })
-                        true)
-                error false)
-            true)
+        (let ((distributions (map distribute-to-holder (var-get seat-holders))))
+            
+            (if (> (- acc-fees (var-get acc-distributed)) u0)
+                (match (as-contract (contract-call? .sbtc-token 
+                                    transfer (- acc-fees (var-get acc-distributed)) tx-sender FAKTORY1 none))
+                    success
+                        (begin
+                            (print {
+                                type: "fee-residual",
+                                recipient: FAKTORY1,
+                                amount: (- acc-fees (var-get acc-distributed))
+                            })
+                            true)
+                    error false)
+                true)
 
-        ;; Reset accumulated fees and update last airdrop height
-        (var-set accumulated-fees u0)
-        (var-set last-airdrop-height (some burn-block-height))
-        
-        (print {
-            type: "fee-airdrop",
-            total-distributed: total-fees,
-            timestamp: burn-block-height
-        })
-        (ok total-fees)))
+            ;; Reset accumulated fees and update last airdrop height
+            (var-set accumulated-fees u0)
+            (var-set last-airdrop-height (some burn-block-height))
+            
+            (print {
+                type: "fee-airdrop",
+                total-distributed: total-fees,
+                timestamp: burn-block-height,
+                distributions: distributions
+            })
+            (ok total-fees))))
 
 ;; Helper function to distribute fees to a single holder
 (define-private (distribute-to-holder (entry {owner: principal, seats: uint}))
@@ -477,19 +478,13 @@
         
         ;; Only distribute if the user's share is greater than zero
         (if (> user-share u0)
-                (match (as-contract (contract-call? .sbtc-token transfer user-share tx-sender holder none))
-                    success
-                        (begin 
-                            (var-set acc-distributed (+ (var-get acc-distributed) user-share))
-                            (print {
-                            type: "fee-distribution",
-                            recipient: holder,
-                            seats: user-seats,
-                            amount: user-share
-                            })
-                            true)
-                    error false)  
-            false)))
+            (match (as-contract (contract-call? .sbtc-token transfer user-share tx-sender holder none))
+                success
+                    (begin 
+                        (var-set acc-distributed (+ (var-get acc-distributed) user-share))
+                        {recipient: holder, amount: user-share})
+                error {recipient: holder, amount: u0})  
+            {recipient: holder, amount: u0})))
 
 ;; Get all unique seat holders
 (define-read-only (get-all-seat-holders)
