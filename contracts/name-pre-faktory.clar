@@ -70,9 +70,6 @@
 (define-constant TOKEN-DAO .name-faktory) ;; param
 (define-constant DEX-DAO .name-faktory-dex) ;; param
 
-;; Helper vars
-(define-data-var target-owner principal 'STTWD9SPRQVD3P733V89SV0P8RZRZNQADG034F0A) ;; 'SP000000000000000000002Q6VF78
-
 ;; Define a data variable to track seat holders
 (define-data-var seat-holders (list 20 {owner: principal, seats: uint}) (list))
 
@@ -126,7 +123,7 @@
       ;; Already found, just pass through
       state
       ;; Check if this is the owner we're looking for
-      (if (is-eq (get owner entry) (var-get target-owner))
+      (if (is-eq (get owner entry) tx-sender)
           ;; Found it, update state
           {found: true, index: (get index state)}
           ;; Not found, increment counter
@@ -138,7 +135,7 @@
     (ok true)))
 
 (define-private (not-matching-owner (entry {owner: principal, seats: uint}))
-  (not (is-eq (get owner entry) (var-get target-owner))))
+  (not (is-eq (get owner entry) tx-sender)))
 
 ;; Main functions
 ;; Buy seats in Period 1
@@ -171,7 +168,6 @@
                     (map-set seats-owned tx-sender (+ user-seats actual-seats))
                     (var-set total-seats-taken (+ current-seats actual-seats))
                     (var-set stx-balance (+ (var-get stx-balance) (* PRICE-PER-SEAT actual-seats)))
-                    (var-set target-owner tx-sender)
                     (update-seat-holder tx-sender (+ user-seats actual-seats))
                     
                     (if (and (>= (var-get total-users) MIN-USERS)  ;; Check if we should set distribution height
@@ -199,7 +195,6 @@
         (asserts! (is-eq (var-get distribution-height) u0) ERR-DISTRIBUTION-ALREADY-SET)
         (asserts! (> user-seats u0) ERR-NOT-SEAT-OWNER)
         
-        (var-set target-owner tx-sender)
         ;; Process refund
         (match (as-contract (contract-call? .sbtc-token transfer (* PRICE-PER-SEAT user-seats) tx-sender seat-owner none))
             success 

@@ -30,13 +30,6 @@
   (begin
     ;; Authorization check
     (asserts! (or (is-eq tx-sender sender) (is-eq contract-caller sender)) ERR_NOT_OWNER)
-    ;; Sender validation
-    (asserts! (not (is-eq sender recipient)) ERR_INVALID_SENDER)
-    ;; Balance check
-    (asserts! (<= amount (ft-get-balance sbtc-token sender)) ERR_INSUFFICIENT_BALANCE)
-    ;; Recipient validation - ensure not burning tokens
-    (asserts! (not (is-eq recipient (as-contract tx-sender))) ERR_INVALID_RECIPIENT)
-    ;; Perform transfer
     (try! (ft-transfer? sbtc-token amount sender recipient))
     ;; Handle memo if provided
     (match memo to-print (print to-print) 0x)
