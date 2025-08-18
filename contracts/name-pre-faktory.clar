@@ -1,3 +1,7 @@
+;; (impl-trait 'SPV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RCJDC22.prelaunch-agent-faktory-trait.prelaunch-trait)
+
+;; (impl-trait .prelaunch-agent-faktory-trait.prelaunch-trait)
+
 ;; 31e7dcf1490cdc5660986afa318b463f15983585fcbd009cae3f0ebad58c349b
 ;; aibtc.com DAO faktory.fun PRE @version 1.0
 ;; Pre-launch contract for token distribution
@@ -70,6 +74,8 @@
 (define-constant TOKEN-DAO .name-faktory) ;; param
 (define-constant DEX-DAO .name-faktory-dex) ;; param
 
+(define-data-var target-owner principal 'SP000000000000000000002Q6VF78)
+
 ;; Define a data variable to track seat holders
 (define-data-var seat-holders (list 20 {owner: principal, seats: uint}) (list))
 
@@ -123,7 +129,7 @@
       ;; Already found, just pass through
       state
       ;; Check if this is the owner we're looking for
-      (if (is-eq (get owner entry) tx-sender)
+      (if (is-eq (get owner entry) (var-get target-owner))
           ;; Found it, update state
           {found: true, index: (get index state)}
           ;; Not found, increment counter
@@ -139,10 +145,11 @@
 
 ;; Main functions
 ;; Buy seats in Period 1
-(define-public (buy-up-to (seat-count uint))
+(define-public (buy-up-to (seat-count uint) (stx-owner (optional principal)))
     (let (
+        (tx-owner (default-to tx-sender stx-owner))
         (current-seats (var-get total-seats-taken))
-        (user-seats (default-to u0 (map-get? seats-owned tx-sender)))
+        (user-seats (default-to u0 (map-get? seats-owned tx-owner)))
         (max-total-allowed (get-max-seats-allowed)) ;; anyone can buy this if min users >= 10
         (max-additional-allowed (if (>= (var-get total-users) MIN-USERS)
                                     max-total-allowed ;; if quota of users is attained, anyone can buy
@@ -165,10 +172,11 @@
                     (if (is-eq user-seats u0) 
                         (var-set total-users (+ (var-get total-users) u1))
                         true)
-                    (map-set seats-owned tx-sender (+ user-seats actual-seats))
+                    (map-set seats-owned tx-owner (+ user-seats actual-seats))
                     (var-set total-seats-taken (+ current-seats actual-seats))
                     (var-set stx-balance (+ (var-get stx-balance) (* PRICE-PER-SEAT actual-seats)))
-                    (update-seat-holder tx-sender (+ user-seats actual-seats))
+                    (var-set target-owner tx-owner)
+                    (update-seat-holder tx-owner (+ user-seats actual-seats))
                     
                     (if (and (>= (var-get total-users) MIN-USERS)  ;; Check if we should set distribution height
                             (>= (var-get total-seats-taken) SEATS))
@@ -176,7 +184,7 @@
                         true)
                     (print {
                         type: "buy-seats",
-                        buyer: tx-sender,
+                        buyer: tx-owner,
                         seats-owned: (+ user-seats actual-seats),
                         total-users: (var-get total-users),
                         total-seats-taken: (+ current-seats actual-seats),
