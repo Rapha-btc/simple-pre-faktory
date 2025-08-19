@@ -32,8 +32,8 @@ epoch = 2.5
 
 [contracts.name-pre-faktory]
 path = 'contracts/name-pre-faktory.clar'
-clarity_version = 2
-epoch = 2.5
+clarity_version = 3
+epoch = 3.1
 
 [contracts.prelaunch-agent-faktory-trait]
 path = 'contracts/prelaunch-agent-faktory-trait.clar'
@@ -44,6 +44,7 @@ epoch = 3.1
 path = 'contracts/sbtc-token.clar'
 clarity_version = 2
 epoch = 2.5
+
 [repl.analysis]
 passes = ['check_checker']
 
