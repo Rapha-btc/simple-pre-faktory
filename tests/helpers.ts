@@ -8,6 +8,7 @@ import {
   trueCV,
   uintCV,
   someCV,
+  PrincipalCV,
 } from "@stacks/transactions";
 import fs from "fs";
 import path from "path";
@@ -76,16 +77,17 @@ export const buySeat = (
   );
 };
 
-// Helper for cross-chain seat buying (payer != seat owner)
-export const buySeatOnBehalf = (account: string, amount: number) => {
-  getSbtc(account);
-  const { result } = simnet.callPublicFn(
-    "name-faktory-dex",
-    "buy",
-    [token, uintCV(amount)],
-    account
+export const buySeatOnBehalf = (
+  payer: string,
+  seatOwner: string,
+  seatCount: number
+): ParsedTransactionResult => {
+  return simnet.callPublicFn(
+    "name-pre-faktory",
+    "buy-up-to",
+    [uintCV(seatCount), someCV(principalCV(seatOwner))],
+    payer
   );
-  expect(result).toStrictEqual(responseOkCV(trueCV()));
 };
 
 export const buyAllPreSaleSeats = (): ParsedTransactionResult[] => {
