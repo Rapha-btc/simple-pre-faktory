@@ -15,5 +15,8 @@
     
     ;; Fee distribution system
     (trigger-fee-airdrop () (response uint uint))
+    
+    ;; Market status check
+    (is-market-open () (response bool uint))
   )
 )

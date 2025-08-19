@@ -1,4 +1,4 @@
-;; (impl-trait 'SPV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RCJDC22.prelaunch-agent-faktory-trait.prelaunch-trait)
+;; (impl-trait 'SPV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RCJDC22.pre-agent-faktory-trait.prelaunch-trait)
 
 (impl-trait .prelaunch-agent-faktory-trait.prelaunch-trait)
 
