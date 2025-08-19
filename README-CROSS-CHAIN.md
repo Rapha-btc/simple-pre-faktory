@@ -2,6 +2,8 @@
 
 ## Summary
 
+We enhanced the pre-launch contract to support cross-chain seat purchasing by adding an optional `stx-owner` parameter to the `buy-up-to` function, enabling Bitcoin users to pay through a bridge contract while assigning seat ownership to their Stacks addresses. We then added comprehensive tests to verify that throughout the entire system lifecycle (purchasing, token claiming, fee distribution, and refunds), the contract correctly distinguishes between the payer (bridge contract) and the seat owner (user's Stacks address).
+
 Updated the pre-launch contract to support **cross-chain seat purchasing**, allowing Bitcoin users to buy seats that vest to Stacks addresses.
 
 ## Key Changes
