@@ -1,6 +1,6 @@
 ;; (impl-trait 'SPV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RCJDC22.prelaunch-agent-faktory-trait.prelaunch-trait)
 
-;; (impl-trait .prelaunch-agent-faktory-trait.prelaunch-trait)
+(impl-trait .prelaunch-agent-faktory-trait.prelaunch-trait)
 
 ;; 31e7dcf1490cdc5660986afa318b463f15983585fcbd009cae3f0ebad58c349b
 ;; aibtc.com DAO faktory.fun PRE @version 1.0

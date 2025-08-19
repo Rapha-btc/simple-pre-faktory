@@ -32,13 +32,13 @@ epoch = 2.5
 
 [contracts.name-pre-faktory]
 path = 'contracts/name-pre-faktory.clar'
-clarity_version = 3
-epoch = 3.1
+clarity_version = 2
+epoch = 2.5
 
 [contracts.prelaunch-agent-faktory-trait]
 path = 'contracts/prelaunch-agent-faktory-trait.clar'
-clarity_version = 3
-epoch = 3.1
+clarity_version = 2
+epoch = 2.5
 
 [contracts.sbtc-token]
 path = 'contracts/sbtc-token.clar'

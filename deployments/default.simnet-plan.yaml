@@ -61,16 +61,19 @@ genesis:
       balance: "100000000000000"
       sbtc-balance: "1000000000"
   contracts:
+    - genesis
+    - lockup
+    - bns
+    - cost-voting
     - costs
     - pox
+    - costs-2
     - pox-2
+    - costs-3
     - pox-3
     - pox-4
-    - lockup
-    - costs-2
-    - costs-3
-    - cost-voting
-    - bns
+    - signers
+    - signers-voting
 plan:
   batches:
     - id: 0
@@ -96,6 +99,11 @@ plan:
             path: contracts/name-faktory.clar
             clarity-version: 2
         - emulated-contract-publish:
+            contract-name: prelaunch-agent-faktory-trait
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/prelaunch-agent-faktory-trait.clar
+            clarity-version: 2
+        - emulated-contract-publish:
             contract-name: sbtc-token
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/sbtc-token.clar
@@ -111,11 +119,3 @@ plan:
             path: contracts/name-faktory-dex.clar
             clarity-version: 2
       epoch: "2.5"
-    - id: 1
-      transactions:
-        - emulated-contract-publish:
-            contract-name: prelaunch-agent-faktory-trait
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/prelaunch-agent-faktory-trait.clar
-            clarity-version: 3
-      epoch: "3.1"
