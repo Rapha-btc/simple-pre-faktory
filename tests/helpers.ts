@@ -7,6 +7,7 @@ import {
   responseOkCV,
   trueCV,
   uintCV,
+  someCV,
 } from "@stacks/transactions";
 import fs from "fs";
 import path from "path";
@@ -59,16 +60,32 @@ export const deployStubToken = () => {
   simnet.deployContract(stubTokenContractName, stubContract, null, deployer);
 };
 
+// Updated to use new signature with optional stx-owner parameter
 export const buySeat = (
   account: string,
   seat: number
+  // nonen // stxOwner?: string // Optional parameter for cross-chain functionality
 ): ParsedTransactionResult => {
+  const stxOwnerParam = noneCV();
+
   return simnet.callPublicFn(
     "name-pre-faktory",
     "buy-up-to",
-    [uintCV(seat)],
+    [uintCV(seat), stxOwnerParam], // Now passing both parameters
     account
   );
+};
+
+// Helper for cross-chain seat buying (payer != seat owner)
+export const buySeatOnBehalf = (account: string, amount: number) => {
+  getSbtc(account);
+  const { result } = simnet.callPublicFn(
+    "name-faktory-dex",
+    "buy",
+    [token, uintCV(amount)],
+    account
+  );
+  expect(result).toStrictEqual(responseOkCV(trueCV()));
 };
 
 export const buyAllPreSaleSeats = (): ParsedTransactionResult[] => {

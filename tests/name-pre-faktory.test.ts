@@ -44,7 +44,7 @@ describe("buy-up-to", () => {
     const { result } = simnet.callPublicFn(
       "name-pre-faktory",
       "buy-up-to",
-      [uintCV(1)],
+      [uintCV(1), noneCV()],
       address1
     );
     expect(result).toStrictEqual(responseErrorCV(uintCV(320)));
@@ -54,7 +54,7 @@ describe("buy-up-to", () => {
     const { result, events } = simnet.callPublicFn(
       "name-pre-faktory",
       "buy-up-to",
-      [uintCV(30)],
+      [uintCV(30), noneCV()],
       address1
     );
     const pricePerSeat = 20000;
@@ -70,7 +70,7 @@ describe("buy-up-to", () => {
     const { result, events } = simnet.callPublicFn(
       "name-pre-faktory",
       "buy-up-to",
-      [uintCV(7)],
+      [uintCV(7), noneCV()],
       address1
     );
 
@@ -95,7 +95,12 @@ describe("buy-up-to", () => {
     );
     expect(cvToValue(totalUsersBefore)).toBe(BigInt(0));
 
-    simnet.callPublicFn("name-pre-faktory", "buy-up-to", [uintCV(7)], address1);
+    simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(7), noneCV()],
+      address1
+    );
 
     const totalUsersAfter = simnet.getDataVar(
       "name-pre-faktory",
@@ -105,7 +110,12 @@ describe("buy-up-to", () => {
   });
 
   it("should updated the number of seats owned by the user", () => {
-    simnet.callPublicFn("name-pre-faktory", "buy-up-to", [uintCV(2)], address1);
+    simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(2), noneCV()],
+      address1
+    );
     const totalUserSeatsBefore = simnet.getMapEntry(
       "name-pre-faktory",
       "seats-owned",
@@ -113,7 +123,12 @@ describe("buy-up-to", () => {
     );
     expect(cvToValue(totalUserSeatsBefore).value).toBe("2");
 
-    simnet.callPublicFn("name-pre-faktory", "buy-up-to", [uintCV(3)], address1);
+    simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(3), noneCV()],
+      address1
+    );
     const totalUserSeatsAfter = simnet.getMapEntry(
       "name-pre-faktory",
       "seats-owned",
@@ -174,7 +189,7 @@ describe("buy-up-to", () => {
     const { result, events } = simnet.callPublicFn(
       "name-pre-faktory",
       "buy-up-to",
-      [uintCV(7)],
+      [uintCV(7), noneCV()],
       address1
     );
 
@@ -274,7 +289,7 @@ describe("refund", () => {
     const { result } = simnet.callPublicFn(
       "name-pre-faktory",
       "buy-up-to",
-      [uintCV(2)],
+      [uintCV(2), noneCV()],
       address1
     );
     expect(result).toStrictEqual(responseOkCV(trueCV()));
@@ -292,7 +307,7 @@ describe("refund", () => {
     const { result } = simnet.callPublicFn(
       "name-pre-faktory",
       "buy-up-to",
-      [uintCV(2)],
+      [uintCV(2), noneCV()],
       address1
     );
     expect(result).toStrictEqual(responseOkCV(trueCV()));
@@ -320,7 +335,7 @@ describe("refund", () => {
     const { result } = simnet.callPublicFn(
       "name-pre-faktory",
       "buy-up-to",
-      [uintCV(2)],
+      [uintCV(2), noneCV()],
       address1
     );
     expect(result).toStrictEqual(responseOkCV(trueCV()));
@@ -346,7 +361,12 @@ describe("refund", () => {
   });
 
   it("should remove the seat owner from the list of holders", () => {
-    simnet.callPublicFn("name-pre-faktory", "buy-up-to", [uintCV(2)], address1);
+    simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(2), noneCV()],
+      address1
+    );
     const holders = cvToJSON(
       simnet.getDataVar("name-pre-faktory", "seat-holders") as ListCV
     );
@@ -361,7 +381,12 @@ describe("refund", () => {
   });
 
   it("should remove the seats owned by the user", () => {
-    simnet.callPublicFn("name-pre-faktory", "buy-up-to", [uintCV(2)], address1);
+    simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(2), noneCV()],
+      address1
+    );
     const seatsOwned = simnet.getMapEntry(
       "name-pre-faktory",
       "seats-owned",
@@ -381,7 +406,12 @@ describe("refund", () => {
   });
 
   it("should update the total seats taken, the total users and the usbtc balance", () => {
-    simnet.callPublicFn("name-pre-faktory", "buy-up-to", [uintCV(2)], address1);
+    simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(2), noneCV()],
+      address1
+    );
     const totalSeatsTaken = simnet.getDataVar(
       "name-pre-faktory",
       "total-seats-taken"
@@ -415,7 +445,12 @@ describe("refund", () => {
   });
 
   it("should print a receipt", () => {
-    simnet.callPublicFn("name-pre-faktory", "buy-up-to", [uintCV(2)], address1);
+    simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(2), noneCV()],
+      address1
+    );
     simnet.mineEmptyBurnBlocks(2100);
     const { result, events } = simnet.callPublicFn(
       "name-pre-faktory",
@@ -431,7 +466,12 @@ describe("refund", () => {
 describe("claim", () => {
   beforeEach(() => {
     getSbtc(address1);
-    simnet.callPublicFn("name-pre-faktory", "buy-up-to", [uintCV(5)], address1);
+    simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(5), noneCV()],
+      address1
+    );
   });
 
   it("should not allow claiming tokens if the distribution period has not started yet", () => {
@@ -1250,7 +1290,7 @@ describe("buy-last-seat", () => {
     const buy1 = simnet.callPublicFn(
       "name-pre-faktory",
       "buy-up-to",
-      [uintCV(2)],
+      [uintCV(2), noneCV()],
       address1
     );
     expect(buy1.result).toStrictEqual(responseOkCV(trueCV()));
@@ -1260,7 +1300,7 @@ describe("buy-last-seat", () => {
     const buy2 = simnet.callPublicFn(
       "name-pre-faktory",
       "buy-up-to",
-      [uintCV(2)],
+      [uintCV(2), noneCV()],
       address2
     );
     expect(buy2.result).toStrictEqual(responseOkCV(trueCV()));
@@ -1270,7 +1310,7 @@ describe("buy-last-seat", () => {
     const buy3 = simnet.callPublicFn(
       "name-pre-faktory",
       "buy-up-to",
-      [uintCV(2)],
+      [uintCV(2), noneCV()],
       address3
     );
     expect(buy3.result).toStrictEqual(responseOkCV(trueCV()));
@@ -1280,7 +1320,7 @@ describe("buy-last-seat", () => {
     const buy4 = simnet.callPublicFn(
       "name-pre-faktory",
       "buy-up-to",
-      [uintCV(2)],
+      [uintCV(2), noneCV()],
       address4
     );
     expect(buy4.result).toStrictEqual(responseOkCV(trueCV()));
@@ -1290,7 +1330,7 @@ describe("buy-last-seat", () => {
     const buy5 = simnet.callPublicFn(
       "name-pre-faktory",
       "buy-up-to",
-      [uintCV(2)],
+      [uintCV(2), noneCV()],
       address5
     );
     expect(buy5.result).toStrictEqual(responseOkCV(trueCV()));
@@ -1300,7 +1340,7 @@ describe("buy-last-seat", () => {
     const buy6 = simnet.callPublicFn(
       "name-pre-faktory",
       "buy-up-to",
-      [uintCV(1)],
+      [uintCV(1), noneCV()],
       address6
     );
     expect(buy6.result).toStrictEqual(responseOkCV(trueCV()));
@@ -1310,7 +1350,7 @@ describe("buy-last-seat", () => {
     const buy7 = simnet.callPublicFn(
       "name-pre-faktory",
       "buy-up-to",
-      [uintCV(1)],
+      [uintCV(1), noneCV()],
       address7
     );
     expect(buy7.result).toStrictEqual(responseOkCV(trueCV()));
@@ -1320,7 +1360,7 @@ describe("buy-last-seat", () => {
     const buy8 = simnet.callPublicFn(
       "name-pre-faktory",
       "buy-up-to",
-      [uintCV(1)],
+      [uintCV(1), noneCV()],
       address8
     );
     expect(buy8.result).toStrictEqual(responseOkCV(trueCV()));
@@ -1330,7 +1370,7 @@ describe("buy-last-seat", () => {
     const buy9 = simnet.callPublicFn(
       "name-pre-faktory",
       "buy-up-to",
-      [uintCV(1)],
+      [uintCV(1), noneCV()],
       address9
     );
     expect(buy9.result).toStrictEqual(responseOkCV(trueCV()));
@@ -1340,7 +1380,7 @@ describe("buy-last-seat", () => {
     const buy10 = simnet.callPublicFn(
       "name-pre-faktory",
       "buy-up-to",
-      [uintCV(1)],
+      [uintCV(1), noneCV()],
       address10
     );
     expect(buy10.result).toStrictEqual(responseOkCV(trueCV()));
@@ -1350,7 +1390,7 @@ describe("buy-last-seat", () => {
     const buy11 = simnet.callPublicFn(
       "name-pre-faktory",
       "buy-up-to",
-      [uintCV(4)],
+      [uintCV(4), noneCV()],
       address11
     );
     expect(buy11.result).toStrictEqual(responseOkCV(trueCV()));
@@ -1382,7 +1422,7 @@ describe("buy-last-seat", () => {
     const buyLastSeat = simnet.callPublicFn(
       "name-pre-faktory",
       "buy-up-to",
-      [uintCV(1)],
+      [uintCV(1), noneCV()],
       address12
     );
 
@@ -1427,7 +1467,7 @@ const buySeatForTest = (account: string, seatCount: number) => {
   return simnet.callPublicFn(
     "name-pre-faktory",
     "buy-up-to",
-    [uintCV(seatCount)],
+    [uintCV(seatCount), noneCV()],
     account
   );
 };
