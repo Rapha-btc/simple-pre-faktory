@@ -141,7 +141,7 @@
     (ok true)))
 
 (define-private (not-matching-owner (entry {owner: principal, seats: uint}))
-  (not (is-eq (get owner entry) tx-sender)))
+  (not (is-eq (get owner entry) (var-get target-owner))))
 
 ;; Main functions
 ;; Buy seats in Period 1
@@ -192,35 +192,45 @@
                         seat-holders: (var-get seat-holders),
                         distribution-height: (var-get distribution-height) 
                         })
-                    (ok true))
+                    (ok actual-seats))
             error (err error))))
 
 ;; Refund logic only for Period 1 expired and Period 2 not started
-(define-public (refund)
-    (let (
-        (user-seats (default-to u0 (map-get? seats-owned tx-sender)))
-        (seat-owner tx-sender))
+(define-public (refund (owner (optional principal)))
+        (let ((seat-owner (default-to tx-sender owner))
+            (user-seats (default-to u0 (map-get? seats-owned seat-owner))))
+
+        (asserts! (or 
+            (is-eq tx-sender seat-owner)  
+            (match (contract-call? 'SPV9K21TBFAK4KNRJXF5DFP8N7W46G4V9RCJDC22.agent-account-registry get-agent-account-info seat-owner)
+                agent-info (is-eq tx-sender (get owner agent-info))  
+                none false  
+            )
+        ) ERR-NOT-AUTHORIZED)
+
         (asserts! (is-eq (var-get distribution-height) u0) ERR-DISTRIBUTION-ALREADY-SET)
         (asserts! (> user-seats u0) ERR-NOT-SEAT-OWNER)
-        
+
+        (var-set target-owner seat-owner)
+
         ;; Process refund
         (match (as-contract (contract-call? .sbtc-token transfer (* PRICE-PER-SEAT user-seats) tx-sender seat-owner none))
             success 
                 (let ((is-removed (unwrap! (remove-seat-holder) ERR-REMOVING-HOLDER)))
-                    (map-delete seats-owned tx-sender)
+                    (map-delete seats-owned seat-owner)
                     (var-set total-seats-taken (- (var-get total-seats-taken) user-seats))
                     (var-set total-users (- (var-get total-users) u1))
                     (var-set stx-balance (- (var-get stx-balance) (* PRICE-PER-SEAT user-seats)))
                     (print {
                         type: "refund",
-                        user: tx-sender,
+                        user: seat-owner,
                         seats-refunded: user-seats,
                         seat-holders: (var-get seat-holders),
                         total-seats-taken: (var-get total-seats-taken),
                         total-users: (var-get total-users),
                         stx-balance: (var-get stx-balance)
                         })
-                    (ok true))
+                    (ok user-seats))
             error (err error))))
 
 (define-private (get-claimable-amount (owner principal))
@@ -329,7 +339,7 @@
     }))
 
 (define-read-only (get-remaining-seats)
-    (ok {remainin-seats: (- SEATS (var-get total-seats-taken))}))
+    (ok {remaining-seats: (- SEATS (var-get total-seats-taken))}))
 
 (define-read-only (get-seats-owned (address principal))
     (ok {seats-owned: (default-to u0 (map-get? seats-owned address))}))
