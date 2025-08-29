@@ -60,7 +60,7 @@ describe("buy-up-to", () => {
     );
     const pricePerSeat = 20000;
     const maxSeatsPerUser = 7;
-    expect(result).toStrictEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(uintCV(7)));
     expect(events[0].event).toBe("ft_transfer_event");
     expect(events[0].data.amount).toBe(
       (pricePerSeat * maxSeatsPerUser).toString()
@@ -75,7 +75,7 @@ describe("buy-up-to", () => {
       address1
     );
 
-    expect(result).toStrictEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(uintCV(7)));
     expect(events[0]).toMatchInlineSnapshot(`
       {
         "data": {
@@ -142,7 +142,7 @@ describe("buy-up-to", () => {
   it("should initialize the token distribution if the minimum number of seats was bought and the minimum number of users was reached", () => {
     const buys = buyAllPreSaleSeats();
     const { result, events } = buys[buys.length - 1];
-    expect(result).toStrictEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(uintCV(2)));
     expect(events[4]).toMatchInlineSnapshot(`
       {
         "data": {
@@ -194,7 +194,7 @@ describe("buy-up-to", () => {
       address1
     );
 
-    expect(result).toStrictEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(uintCV(7)));
     expect(events[1]).toMatchInlineSnapshot(`
       {
         "data": {
@@ -278,7 +278,7 @@ describe("refund", () => {
     const { result } = simnet.callPublicFn(
       "name-pre-faktory",
       "refund",
-      [],
+      [noneCV()],
       address1
     );
 
@@ -293,12 +293,12 @@ describe("refund", () => {
       [uintCV(2), noneCV()],
       address1
     );
-    expect(result).toStrictEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(uintCV(2)));
     simnet.mineEmptyBurnBlocks(2100);
     const { result: refund } = simnet.callPublicFn(
       "name-pre-faktory",
       "refund",
-      [],
+      [noneCV()],
       address2
     );
     expect(refund).toStrictEqual(responseErrorCV(uintCV(302)));
@@ -311,21 +311,21 @@ describe("refund", () => {
       [uintCV(2), noneCV()],
       address1
     );
-    expect(result).toStrictEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(uintCV(2)));
 
     const { result: refundBeforeExpire } = simnet.callPublicFn(
       "name-pre-faktory",
       "refund",
-      [],
+      [noneCV()],
       address1
     );
-    expect(refundBeforeExpire).toStrictEqual(responseOkCV(trueCV())); // (responseErrorCV(uintCV(309)));
+    expect(refundBeforeExpire).toStrictEqual(responseOkCV(uintCV(2))); // (responseErrorCV(uintCV(309)));
     simnet.mineEmptyBurnBlocks(2100);
 
     const { result: refundAfterExpire } = simnet.callPublicFn(
       "name-pre-faktory",
       "refund",
-      [],
+      [noneCV()],
       address1
     );
     expect(refundAfterExpire).toStrictEqual(responseErrorCV(uintCV(302))); // (responseOkCV(trueCV()));
@@ -339,15 +339,15 @@ describe("refund", () => {
       [uintCV(2), noneCV()],
       address1
     );
-    expect(result).toStrictEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(uintCV(2)));
     simnet.mineEmptyBurnBlocks(2100);
     const { result: refund, events } = simnet.callPublicFn(
       "name-pre-faktory",
       "refund",
-      [],
+      [noneCV()],
       address1
     );
-    expect(refund).toStrictEqual(responseOkCV(trueCV()));
+    expect(refund).toStrictEqual(responseOkCV(uintCV(2)));
     expect(events[0]).toMatchInlineSnapshot(`
       {
         "data": {
@@ -373,7 +373,7 @@ describe("refund", () => {
     );
     expect(holders.value[0].value.owner.value).toBe(address1);
     simnet.mineEmptyBurnBlocks(2100);
-    simnet.callPublicFn("name-pre-faktory", "refund", [], address1);
+    simnet.callPublicFn("name-pre-faktory", "refund", [noneCV()], address1);
 
     const holdersAfter = cvToJSON(
       simnet.getDataVar("name-pre-faktory", "seat-holders") as ListCV
@@ -395,7 +395,7 @@ describe("refund", () => {
     );
     expect(seatsOwned).toStrictEqual(someCV(uintCV(2)));
     simnet.mineEmptyBurnBlocks(2100);
-    simnet.callPublicFn("name-pre-faktory", "refund", [], address1);
+    simnet.callPublicFn("name-pre-faktory", "refund", [noneCV()], address1);
 
     expect(
       simnet.getMapEntry(
@@ -425,7 +425,7 @@ describe("refund", () => {
     expect(totalUsers).toStrictEqual(uintCV(1));
 
     simnet.mineEmptyBurnBlocks(2100);
-    simnet.callPublicFn("name-pre-faktory", "refund", [], address1);
+    simnet.callPublicFn("name-pre-faktory", "refund", [noneCV()], address1);
 
     const totalSeatsTakenAfter = simnet.getDataVar(
       "name-pre-faktory",
@@ -456,10 +456,10 @@ describe("refund", () => {
     const { result, events } = simnet.callPublicFn(
       "name-pre-faktory",
       "refund",
-      [],
+      [noneCV()],
       address1
     );
-    expect(result).toStrictEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(uintCV(2)));
     expect(events[2]).toMatchInlineSnapshot(`undefined`);
   });
 });
@@ -1294,7 +1294,7 @@ describe("buy-last-seat", () => {
       [uintCV(2), noneCV()],
       address1
     );
-    expect(buy1.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy1.result).toStrictEqual(responseOkCV(uintCV(2)));
     // console.log("User 1 bought 2 seats");
 
     // User 2 buys 2 seats
@@ -1304,7 +1304,7 @@ describe("buy-last-seat", () => {
       [uintCV(2), noneCV()],
       address2
     );
-    expect(buy2.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy2.result).toStrictEqual(responseOkCV(uintCV(2)));
     // console.log("User 2 bought 2 seats");
 
     // User 3 buys 2 seats
@@ -1314,7 +1314,7 @@ describe("buy-last-seat", () => {
       [uintCV(2), noneCV()],
       address3
     );
-    expect(buy3.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy3.result).toStrictEqual(responseOkCV(uintCV(2)));
     // console.log("User 3 bought 2 seats");
 
     // User 4 buys 2 seats
@@ -1324,7 +1324,7 @@ describe("buy-last-seat", () => {
       [uintCV(2), noneCV()],
       address4
     );
-    expect(buy4.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy4.result).toStrictEqual(responseOkCV(uintCV(2)));
     // console.log("User 4 bought 2 seats");
 
     // User 5 buys 2 seats
@@ -1334,7 +1334,7 @@ describe("buy-last-seat", () => {
       [uintCV(2), noneCV()],
       address5
     );
-    expect(buy5.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy5.result).toStrictEqual(responseOkCV(uintCV(2)));
     // console.log("User 5 bought 2 seats");
 
     // User 6 buys 1 seat
@@ -1344,7 +1344,7 @@ describe("buy-last-seat", () => {
       [uintCV(1), noneCV()],
       address6
     );
-    expect(buy6.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy6.result).toStrictEqual(responseOkCV(uintCV(1)));
     // console.log("User 6 bought 1 seat");
 
     // User 7 buys 1 seat
@@ -1354,7 +1354,7 @@ describe("buy-last-seat", () => {
       [uintCV(1), noneCV()],
       address7
     );
-    expect(buy7.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy7.result).toStrictEqual(responseOkCV(uintCV(1)));
     // console.log("User 7 bought 1 seat");
 
     // User 8 buys 1 seat
@@ -1364,7 +1364,7 @@ describe("buy-last-seat", () => {
       [uintCV(1), noneCV()],
       address8
     );
-    expect(buy8.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy8.result).toStrictEqual(responseOkCV(uintCV(1)));
     // console.log("User 8 bought 1 seat");
 
     // User 9 buys 1 seat
@@ -1374,7 +1374,7 @@ describe("buy-last-seat", () => {
       [uintCV(1), noneCV()],
       address9
     );
-    expect(buy9.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy9.result).toStrictEqual(responseOkCV(uintCV(1)));
     // console.log("User 9 bought 1 seat");
 
     // User 10 buys 1 seat
@@ -1384,7 +1384,7 @@ describe("buy-last-seat", () => {
       [uintCV(1), noneCV()],
       address10
     );
-    expect(buy10.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy10.result).toStrictEqual(responseOkCV(uintCV(1)));
     // console.log("User 10 bought 1 seat");
 
     // User 11 buys 4 seats
@@ -1394,7 +1394,7 @@ describe("buy-last-seat", () => {
       [uintCV(4), noneCV()],
       address11
     );
-    expect(buy11.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy11.result).toStrictEqual(responseOkCV(uintCV(4)));
     // console.log("User 11 bought 4 seats");
 
     // Verify we have 19 seats total
@@ -1428,7 +1428,7 @@ describe("buy-last-seat", () => {
     );
 
     // The result should be successful
-    expect(buyLastSeat.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buyLastSeat.result).toStrictEqual(responseOkCV(uintCV(1)));
 
     // Log events by simply using console.log without accessing their properties directly
     // console.log("===== EVENTS FROM BUYING LAST SEAT =====");
@@ -1526,7 +1526,7 @@ describe("seat-distribution-scenarios", () => {
     for (let i = 1; i <= 9; i++) {
       const address = accounts.get(`wallet_${i}`)!;
       const result = buySeatForTest(address, 2);
-      expect(result.result).toStrictEqual(responseOkCV(trueCV()));
+      expect(result.result).toStrictEqual(responseOkCV(uintCV(2)));
     }
 
     // Verify we have 18 seats total and 9 users
@@ -1547,7 +1547,7 @@ describe("seat-distribution-scenarios", () => {
     // Last user buys the final 2 seats (19 and 20)
     // console.log("\n===== BUYING FINAL 2 SEATS WITH USER 10 =====");
     const finalBuyResult = buySeatForTest(address10, 2);
-    expect(finalBuyResult.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(finalBuyResult.result).toStrictEqual(responseOkCV(uintCV(2)));
 
     // Log events from the final purchase
     logDistributionEvents(finalBuyResult);
@@ -1568,40 +1568,40 @@ describe("seat-distribution-scenarios", () => {
     // First user gets 7 seats (maximum allowed)
     // console.log("User 1 buying 7 seats (maximum allowed)");
     const buy1 = buySeatForTest(address1, 7);
-    expect(buy1.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy1.result).toStrictEqual(responseOkCV(uintCV(7)));
 
     // Next users get varying numbers of seats
     // console.log("User 2 buying 3 seats");
     const buy2 = buySeatForTest(address2, 3);
-    expect(buy2.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy2.result).toStrictEqual(responseOkCV(uintCV(3)));
 
     // console.log("User 3 buying 2 seats");
     const buy3 = buySeatForTest(address3, 2);
-    expect(buy3.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy3.result).toStrictEqual(responseOkCV(uintCV(2)));
 
     // console.log("User 4 buying 1 seat");
     const buy4 = buySeatForTest(address4, 1);
-    expect(buy4.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy4.result).toStrictEqual(responseOkCV(uintCV(1)));
 
     // console.log("User 5 buying 1 seat");
     const buy5 = buySeatForTest(address5, 1);
-    expect(buy5.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy5.result).toStrictEqual(responseOkCV(uintCV(1)));
 
     // console.log("User 6 buying 1 seat");
     const buy6 = buySeatForTest(address6, 1);
-    expect(buy6.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy6.result).toStrictEqual(responseOkCV(uintCV(1)));
 
     // console.log("User 7 buying 1 seat");
     const buy7 = buySeatForTest(address7, 1);
-    expect(buy7.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy7.result).toStrictEqual(responseOkCV(uintCV(1)));
 
     // console.log("User 8 buying 1 seat");
     const buy8 = buySeatForTest(address8, 1);
-    expect(buy8.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy8.result).toStrictEqual(responseOkCV(uintCV(1)));
 
     // console.log("User 9 buying 2 seat");
     const buy9 = buySeatForTest(address9, 2);
-    expect(buy9.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy9.result).toStrictEqual(responseOkCV(uintCV(2)));
 
     // Verify we have 19 seats total and 9 users
     const totalSeatsBefore = simnet.getDataVar(
@@ -1621,7 +1621,7 @@ describe("seat-distribution-scenarios", () => {
     // Last user buys the final seat
     // console.log("\n===== BUYING FINAL SEAT WITH USER 10 =====");
     const finalBuyResult = buySeatForTest(address10, 1);
-    expect(finalBuyResult.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(finalBuyResult.result).toStrictEqual(responseOkCV(uintCV(1)));
 
     // Log events from the final purchase
     logDistributionEvents(finalBuyResult);
@@ -1642,7 +1642,7 @@ describe("seat-distribution-scenarios", () => {
     for (let i = 1; i <= 9; i++) {
       const address = accounts.get(`wallet_${i}`)!;
       const result = buySeatForTest(address, 1);
-      expect(result.result).toStrictEqual(responseOkCV(trueCV()));
+      expect(result.result).toStrictEqual(responseOkCV(uintCV(1)));
       // console.log(`User ${i} bought 1 seat`);
     }
 
@@ -1657,7 +1657,7 @@ describe("seat-distribution-scenarios", () => {
     // Last user buys 1 seat (not enough to trigger distribution)
     // console.log("User 10 buying 1 seat (not enough for distribution)");
     const buy10 = buySeatForTest(address10, 1);
-    expect(buy10.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy10.result).toStrictEqual(responseOkCV(uintCV(1)));
 
     // Now all users buy 1 more seat each until we reach 20
     // console.log("\n===== USERS BUYING ADDITIONAL SEATS =====");
@@ -1666,7 +1666,7 @@ describe("seat-distribution-scenarios", () => {
     for (let i = 1; i <= 10; i++) {
       const address = accounts.get(`wallet_${i}`)!;
       const result = buySeatForTest(address, 1);
-      expect(result.result).toStrictEqual(responseOkCV(trueCV()));
+      expect(result.result).toStrictEqual(responseOkCV(uintCV(1)));
       // console.log(`User ${i} bought their 2nd seat`);
 
       // Check total seats after each purchase
@@ -1718,25 +1718,25 @@ describe("max-seats-per-user-test", () => {
 
     // User 1 buys the maximum of 7 seats
     const buy1 = buySeatForTest(address1, 7);
-    expect(buy1.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy1.result).toStrictEqual(responseOkCV(uintCV(7)));
     // console.log("User 1 bought 7 seats");
 
     // Nine more users buy 1 seat each to reach 10 users with 16 seats
     for (let i = 2; i <= 10; i++) {
       const address = accounts.get(`wallet_${i}`)!;
       const result = buySeatForTest(address, 1);
-      expect(result.result).toStrictEqual(responseOkCV(trueCV()));
+      expect(result.result).toStrictEqual(responseOkCV(uintCV(1)));
       // console.log(`User ${i} bought 1 seat`);
     }
 
     // User 2 buys 1 more seat
     const buy2More = buySeatForTest(address2, 1);
-    expect(buy2More.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy2More.result).toStrictEqual(responseOkCV(uintCV(1)));
     // console.log("User 2 bought 1 more seat");
 
     // User 3 buys 2 more seat
     const buy3More = buySeatForTest(address3, 2);
-    expect(buy3More.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(buy3More.result).toStrictEqual(responseOkCV(uintCV(2)));
     // console.log("User 3 bought 2 more seat");
 
     // Verify we have 19 seats total and 10 users
@@ -1773,7 +1773,7 @@ describe("max-seats-per-user-test", () => {
     // User 2 should be able to buy the last seat
     // console.log("\n===== USER 2 BUYS THE LAST SEAT INSTEAD =====");
     const user2BuysLast = buySeatForTest(address2, 1);
-    expect(user2BuysLast.result).toStrictEqual(responseOkCV(trueCV()));
+    expect(user2BuysLast.result).toStrictEqual(responseOkCV(uintCV(1)));
 
     // Now we should have 20 seats and distribution should be initialized
     const finalSeats = simnet.getDataVar(
@@ -1829,7 +1829,7 @@ describe("cross-chain-seat-purchase", () => {
     // address1 pays for seats but address2 owns them
     const { result, events } = buySeatOnBehalf(address1, address2, 3);
 
-    expect(result).toStrictEqual(responseOkCV(trueCV()));
+    expect(result).toStrictEqual(responseOkCV(uintCV(3)));
 
     // Verify payment came from address1
     expect(events[0]).toMatchObject({
@@ -2173,7 +2173,7 @@ describe("cross-chain-seat-purchase", () => {
     const { result: payerRefundResult } = simnet.callPublicFn(
       "name-pre-faktory",
       "refund",
-      [],
+      [noneCV()],
       address1
     );
     expect(payerRefundResult).toStrictEqual(responseErrorCV(uintCV(302))); // ERR-NOT-SEAT-OWNER
@@ -2182,10 +2182,10 @@ describe("cross-chain-seat-purchase", () => {
     const { result: ownerRefundResult, events } = simnet.callPublicFn(
       "name-pre-faktory",
       "refund",
-      [],
+      [noneCV()],
       address2
     );
-    expect(ownerRefundResult).toStrictEqual(responseOkCV(trueCV()));
+    expect(ownerRefundResult).toStrictEqual(responseOkCV(uintCV(2)));
 
     // Verify refund goes to address2 (seat owner), not address1 (payer)
     expect(events[0]).toMatchObject({
