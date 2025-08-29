@@ -7,16 +7,12 @@
 
 (define-trait prelaunch-trait
   (
-    ;; Core pre-launch functions
-    (buy-up-to (uint (optional principal)) (response bool uint))
-    (refund () (response bool uint))
+    (buy-up-to (uint (optional principal)) (response uint uint))
+    (refund ((optional principal)) (response uint uint))
     (claim (<faktory-token>) (response uint uint))
     (claim-on-behalf (<faktory-token> principal) (response uint uint))
     
-    ;; Fee distribution system
     (trigger-fee-airdrop () (response uint uint))
-    
-    ;; Market status check
     (is-market-open () (response bool uint))
   )
 )
