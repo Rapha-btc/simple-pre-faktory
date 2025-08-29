@@ -75,7 +75,11 @@
 ;; ))
 
 (define-trait aibtc-account-config (
-  (set-agent-can-manage-assets
+  ;; (set-agent-can-manage-assets
+  ;;   (bool)
+  ;;   (response bool uint)
+  ;; )
+  (set-agent-can-deposit-assets
     (bool)
     (response bool uint)
   )
