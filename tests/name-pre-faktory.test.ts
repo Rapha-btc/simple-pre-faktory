@@ -464,6 +464,98 @@ describe("refund", () => {
   });
 });
 
+describe("refund authorization with agent registry", () => {
+  beforeEach(() => {
+    getSbtc(address1);
+    getSbtc(address2);
+  });
+
+  it("should allow seat owner to refund on behalf of themselves explicitly", () => {
+    // address1 buys 3 seats
+    simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(3), noneCV()],
+      address1
+    );
+
+    // address1 can refund their own seats by specifying themselves as owner
+    const { result } = simnet.callPublicFn(
+      "name-pre-faktory",
+      "refund",
+      [someCV(principalCV(address1))], // explicitly specify address1 as owner
+      address1 // tx-sender is also address1
+    );
+    expect(result).toStrictEqual(responseOkCV(uintCV(3)));
+  });
+
+  it("should fail when non-seat-owner tries to refund for someone else without agent registry authorization", () => {
+    // address1 buys 3 seats
+    simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(3), noneCV()],
+      address1
+    );
+
+    // address2 tries to refund address1's seats but has no authorization
+    const { result } = simnet.callPublicFn(
+      "name-pre-faktory",
+      "refund",
+      [someCV(principalCV(address1))], // trying to refund address1's seats
+      address2 // but tx-sender is address2 who doesn't own those seats
+    );
+    expect(result).toStrictEqual(responseErrorCV(uintCV(305))); // ERR-NOT-AUTHORIZED
+  });
+
+  it("should fail when trying to refund for non-existent seat owner", () => {
+    // address1 buys seats, but we try to refund for address2 who has no seats
+    simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(3), noneCV()],
+      address1
+    );
+
+    const { result } = simnet.callPublicFn(
+      "name-pre-faktory",
+      "refund",
+      [someCV(principalCV(address2))], // address2 has no seats
+      address1 // even from address1 who does have seats
+    );
+    expect(result).toStrictEqual(responseErrorCV(uintCV(305))); // ERR-NOT-AUTHORIZED
+  });
+
+  it("should fail when non-owner tries to refund with none parameter for someone else", () => {
+    // address1 buys seats
+    simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(2), noneCV()],
+      address1
+    );
+
+    // address2 tries to refund but with none parameter (should default to tx-sender)
+    // This should fail because address2 has no seats
+    const { result } = simnet.callPublicFn(
+      "name-pre-faktory",
+      "refund",
+      [noneCV()], // defaults to tx-sender (address2)
+      address2
+    );
+    expect(result).toStrictEqual(responseErrorCV(uintCV(302))); // ERR-NOT-SEAT-OWNER
+  });
+
+  // Note: Testing agent-account-registry integration would require setting up
+  // that contract and creating agent accounts with proper ownership relationships,
+  // which may be beyond current test scope. The agent registry authorization
+  // path would be tested if we had a test where:
+  // 1. address1 owns seats
+  // 2. address1 has an agent account in the registry
+  // 3. address2 is set as the owner of address1's agent account
+  // 4. address2 should then be able to call refund([some(address1)], address2)
+});
+
 describe("claim", () => {
   beforeEach(() => {
     getSbtc(address1);
