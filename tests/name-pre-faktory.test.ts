@@ -546,14 +546,107 @@ describe("refund authorization with agent registry", () => {
     expect(result).toStrictEqual(responseErrorCV(uintCV(302))); // ERR-NOT-SEAT-OWNER
   });
 
-  // Note: Testing agent-account-registry integration would require setting up
-  // that contract and creating agent accounts with proper ownership relationships,
-  // which may be beyond current test scope. The agent registry authorization
-  // path would be tested if we had a test where:
-  // 1. address1 owns seats
-  // 2. address1 has an agent account in the registry
-  // 3. address2 is set as the owner of address1's agent account
-  // 4. address2 should then be able to call refund([some(address1)], address2)
+  // it("should allow owner to refund on behalf of their agent contract via registry lookup", () => {
+  //   // The an-agent contract (ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.an-agent) registers:
+  //   // - address1 as ACCOUNT_OWNER
+  //   // - address2 as ACCOUNT_AGENT
+  //   // So address1 is the owner of the an-agent contract, and the registry lookup
+  //   // should find address1 as the owner when checking the an-agent contract principal
+
+  //   // The an-agent contract buys seats (contract acts as the seat holder)
+  //   const agentContractPrincipal = `${simnet.deployer}.an-agent`;
+
+  //   getSbtc(agentContractPrincipal); // Give the contract some sBTC
+
+  //   simnet.callPublicFn(
+  //     "name-pre-faktory",
+  //     "buy-up-to",
+  //     [uintCV(3), noneCV()],
+  //     agentContractPrincipal // contract buys seats
+  //   );
+
+  //   // Verify the contract owns the seats
+  //   const seatsOwned = simnet.getMapEntry(
+  //     "name-pre-faktory",
+  //     "seats-owned",
+  //     principalCV(agentContractPrincipal)
+  //   );
+  //   expect(seatsOwned).toStrictEqual(someCV(uintCV(3)));
+
+  //   // address1 (owner) should be able to refund the contract's seats
+  //   // because the registry shows address1 as the owner of the an-agent contract
+  //   const { result } = simnet.callPublicFn(
+  //     "name-pre-faktory",
+  //     "refund",
+  //     [someCV(principalCV(agentContractPrincipal))], // refunding contract's seats
+  //     address1 // tx-sender is the owner
+  //   );
+
+  //   expect(result).toStrictEqual(responseOkCV(uintCV(3)));
+
+  //   // Verify seats were removed from the contract
+  //   const seatsAfterRefund = simnet.getMapEntry(
+  //     "name-pre-faktory",
+  //     "seats-owned",
+  //     principalCV(agentContractPrincipal)
+  //   );
+  //   expect(seatsAfterRefund).toStrictEqual(noneCV());
+  // });
+
+  it("should allow owner to refund seats bought on behalf of their agent contract", () => {
+    // address1 buys seats on behalf of the an-agent contract
+    const agentContractPrincipal = `${simnet.deployer}.an-agent`;
+
+    const { result } = simnet.callPublicFn(
+      "name-pre-faktory",
+      "buy-up-to",
+      [uintCV(4), someCV(principalCV(agentContractPrincipal))], // buying for the agent contract
+      address1 // address1 is the payer
+    );
+    expect(result).toStrictEqual(responseOkCV(uintCV(4)));
+
+    // Verify the an-agent contract owns the seats (not address1)
+    const agentSeats = simnet.getMapEntry(
+      "name-pre-faktory",
+      "seats-owned",
+      principalCV(agentContractPrincipal)
+    );
+    expect(agentSeats).toStrictEqual(someCV(uintCV(4)));
+
+    // Verify address1 doesn't own any seats
+    let address1HasSeats = false;
+    try {
+      const address1Seats = simnet.getMapEntry(
+        "name-pre-faktory",
+        "seats-owned",
+        principalCV(address1)
+      );
+      address1HasSeats = true;
+      expect(address1Seats).toStrictEqual(noneCV());
+    } catch (error) {
+      // Expected - address1 should not have any entry in seats-owned map
+      expect(address1HasSeats).toBe(false);
+    }
+
+    // address1 (owner) should be able to refund the agent contract's seats
+    // because the registry shows address1 as the owner of the an-agent contract
+    const { result: refundResult } = simnet.callPublicFn(
+      "name-pre-faktory",
+      "refund",
+      [someCV(principalCV(agentContractPrincipal))], // refunding agent contract's seats
+      address1 // tx-sender is the owner
+    );
+
+    expect(refundResult).toStrictEqual(responseOkCV(uintCV(4)));
+
+    // Verify seats were removed from the agent contract
+    const seatsAfterRefund = simnet.getMapEntry(
+      "name-pre-faktory",
+      "seats-owned",
+      principalCV(agentContractPrincipal)
+    );
+    expect(seatsAfterRefund).toStrictEqual(noneCV());
+  });
 });
 
 describe("claim", () => {
